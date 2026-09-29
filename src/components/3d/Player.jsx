@@ -237,3 +237,5 @@ export default function Player() {
         </>
     )
 }
+useGLTF.preload('/models/maincharacter.glb');
+useGLTF.preload('/models/subcharacter.glb');

@@ -36,8 +36,8 @@ function MovingPlatform({ position, note, movementType = 'horizontal', speed = 1
         <RigidBody ref={bodyRef} type="kinematicPosition" position={position} friction={2}>
             <mesh castShadow receiveShadow>
                 <cylinderGeometry args={[2.5, 2.0, 0.4, 6]} />
-                <meshPhysicalMaterial color="#38bdf8" transmission={0.9} opacity={1} transparent roughness={0.1} emissive="#0284c7" emissiveIntensity={0.5} />
-            </mesh>
+                {/* Đổi từ meshPhysicalMaterial sang meshStandardMaterial */}
+                <meshStandardMaterial color="#c084fc" transparent opacity={0.8} roughness={0.5} />            </mesh>
             <Float speed={3} rotationIntensity={0.2} floatIntensity={0.5}>
                 <Text position={[0, 0.5, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={1} color="#bae6fd" outlineWidth={0.02} outlineColor="#000">{note}</Text>
             </Float>
@@ -93,8 +93,8 @@ export default function Scene4_Core() {
             <directionalLight position={[0, 10, -10]} intensity={2} color="#d8b4fe" />
             <pointLight position={[0, 5, -15]} intensity={5} color="#818cf8" distance={30} />
 
-            <Sparkles count={300} scale={40} size={6} speed={0.4} color="#f472b6" opacity={0.6} />
-            <Stars radius={50} depth={50} count={1000} factor={4} saturation={1} fade speed={2} />
+            <Sparkles count={50} scale={40} size={6} speed={0.4} color="#f472b6" opacity={0.4} />
+            <Stars radius={50} depth={50} count={200} factor={4} saturation={1} fade speed={2} />
 
             {/* BỤC XUẤT PHÁT */}
             <RigidBody type="fixed" position={[0, -1, 5]}>
@@ -122,8 +122,8 @@ export default function Scene4_Core() {
                     <RigidBody key={plat.id} type="fixed" position={plat.position}>
                         <mesh castShadow receiveShadow>
                             <cylinderGeometry args={[2.5, 2.0, 0.4, 6]} />
-                            <meshPhysicalMaterial color="#c084fc" transmission={0.9} opacity={1} transparent roughness={0.1} />
-                        </mesh>
+                            {/* Đổi từ meshPhysicalMaterial sang meshStandardMaterial */}
+                            <meshStandardMaterial color="#c084fc" transparent opacity={0.8} roughness={0.5} />                        </mesh>
                         <Float speed={3} rotationIntensity={0.2} floatIntensity={0.5}>
                             <Text position={[0, 0.5, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={1} color="#fbcfe8" outlineWidth={0.02} outlineColor="#000">{plat.note}</Text>
                         </Float>

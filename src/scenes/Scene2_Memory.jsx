@@ -6,6 +6,7 @@ import { setState } from 'playroomkit'
 import * as THREE from 'three'
 
 import { useMultiplayerState } from 'playroomkit'
+import { setState, useMultiplayerState, isHost } from 'playroomkit'
 
 const SCRIPT = [
     { name: "Narrator 😈", text: "Hahaha! Welcome to the Memory Library! To open the next door, you must absorb all 6767 memory pieces of Success here. You have 1 minute... Starting now!!", speed: 1, chunked: false },
@@ -92,7 +93,8 @@ export default function Scene2_Memory() {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === 'Enter') {
+            // CHỈ CHO PHÉP TRƯỞNG PHÒNG (HOST) CHUYỂN THOẠI
+            if (e.key === 'Enter' && isHost()) {
                 setStep((prev) => {
                     if (prev < SCRIPT.length - 1 && !SCRIPT[prev].showKey) return prev + 1;
                     return prev;
@@ -109,7 +111,7 @@ export default function Scene2_Memory() {
         setDoorOpen(true);
         setTimeout(() => {
             setFadeOut(true);
-            setTimeout(() => setState('currentScene', 'scene3'), 1000);
+            setTimeout(() => setState('globalScene', 'scene3'), 1000);
         }, 1500);
     };
 

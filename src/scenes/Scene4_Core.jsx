@@ -5,6 +5,8 @@ import { Text, Float, Sparkles, Stars, Html, useTexture } from '@react-three/dre
 import { setState } from 'playroomkit'
 import * as THREE from 'three'
 
+import { setState, isHost, useMultiplayerState } from 'playroomkit' // Nhớ import thêm
+
 function RotatingObstacle({ position, speed = 2 }) {
     const bodyRef = useRef();
     useFrame((state) => {
@@ -47,8 +49,7 @@ function MovingPlatform({ position, note, movementType = 'horizontal', speed = 1
 
 export default function Scene4_Core() {
     // Kích hoạt state quản lý luồng game
-    const [phase, setPhase] = useState('intro_mindmap');
-
+    const [phase, setPhase] = useMultiplayerState('scene4_phase', 'intro_mindmap');
     // Tải ảnh Mindmap từ thư mục public (nhớ để file tên mindmap_scene4.jpg vào thư mục public)
     const mindmapTex = useTexture('/mindmap_scene4.jpg');
 
@@ -62,14 +63,20 @@ export default function Scene4_Core() {
     // 2. BẤM ENTER ĐỂ BẮT ĐẦU CHƠI OBBY
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (phase === 'intro_mindmap' && e.key === 'Enter') setPhase('playing');
+            // Chỉ Host bấm Enter thì mới đổi phase cho cả phòng
+            if (phase === 'intro_mindmap' && e.key === 'Enter' && isHost()) {
+                setPhase('playing');
+            }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [phase]);
 
-    const handleEndGame = () => setState('currentScene', 'scene5');
-
+    const handleEndGame = () => {
+        if (isHost()) {
+            setState('globalScene', 'scene5');
+        }
+    };
     // Tạo đường chạy Obby với các từ khóa Note-taking thay vì nốt nhạc
     const obbyPath = useMemo(() => {
         const platforms = [];

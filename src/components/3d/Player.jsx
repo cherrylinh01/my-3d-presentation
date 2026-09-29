@@ -114,13 +114,18 @@ export default function Player() {
     // ==========================================
     // LẮNG NGHE SỰ KIỆN DỊCH CHUYỂN TỪ SCENE KHÁC
     // ==========================================
+    // Đặt đoạn này bên trong component Player chính (không phải OtherPlayer)
     useEffect(() => {
         const handleTeleport = (e) => {
-            if (bodyRef.current) {
-                bodyRef.current.setTranslation(e.detail, true);
-                bodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+            const { x, y, z } = e.detail;
+
+            // Ép vị trí vật lý của nhân vật về tọa độ mới
+            if (playerRef.current) {
+                playerRef.current.setTranslation({ x, y, z }, true);
+                playerRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true); // Xóa gia tốc rơi cũ
             }
         };
+
         window.addEventListener('teleportPlayer', handleTeleport);
         return () => window.removeEventListener('teleportPlayer', handleTeleport);
     }, []);

@@ -132,7 +132,7 @@ export default function Scene3_Forest() {
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (phase === 'transition_to_4' && e.key === 'Enter') {
-                setState('currentScene', 'scene4'); // Lệnh này tự động ép cả phòng chuyển màn
+                setState('globalScene', 'scene4');
             }
         };
         window.addEventListener('keydown', handleKeyDown);

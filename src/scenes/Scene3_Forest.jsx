@@ -224,10 +224,10 @@ export default function Scene3_Forest() {
                 <div style={{ width: '800px', pointerEvents: 'auto', userSelect: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     {phase === 'intro' && (
                         <div style={{ background: 'rgba(0,0,0,0.8)', padding: '20px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #ef4444', width: '100%' }}>
-                            <h2 style={{ color: '#f87171' }}>👺 Chúa tể rừng xanh:</h2>
-                            <p>"Ngáp... Kẻ nào dám đánh thức ta? Muốn thành công phải tuân thủ LUẬT LỆ! Trỗi dậy đi hỡi bầy tôi!"</p>
+                            <h2 style={{ color: '#f87171' }}>👺 Lord of the jungle:</h2>
+                            <p>"(Yawn)... Who dares to wake up the lord of the forest? Those who want to succeed must follow my RULES! Rise up, my servants!"</p>
                             <button onClick={() => setPhase('lesson')} style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '16px' }}>
-                                Rút vũ khí chống trả
+                                Weapons here!
                             </button>
                         </div>
                     )}
@@ -308,9 +308,9 @@ export default function Scene3_Forest() {
                                 </tbody>
                             </table>
 
-                            <h3 style={{ color: '#ef4444', textAlign: 'center', marginTop: '20px' }}>Nhiệm vụ: CLICK TIÊU DIỆT CÁC QUÁI VẬT MANG CÂU SAI NGỮ PHÁP!</h3>
+                            <h3 style={{ color: '#ef4444', textAlign: 'center', marginTop: '20px' }}>System: click (or tap) on the monsters with WRONG GRAMMAR SENTENCES!</h3>
                             <button onClick={() => setPhase('playing')} style={{ marginTop: '10px', padding: '15px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', width: '100%', fontSize: '18px', fontWeight: 'bold' }}>
-                                BẮT ĐẦU (2 Phút)
+                                START (2 Minutes)
                             </button>
                         </div>
                     )}
@@ -329,16 +329,16 @@ export default function Scene3_Forest() {
                     {phase === 'gameover' && (
                         <div style={{ background: 'rgba(0,0,0,0.8)', padding: '30px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #ef4444', width: '100%', marginTop: '-200px' }}>
                             <h2 style={{ color: '#ef4444', fontSize: '30px' }}>☠️ GAME OVER</h2>
-                            <p style={{ fontSize: '18px' }}>Hết thời gian! Bạn chưa tiêu diệt hết quái vật.</p>
-                            <button onClick={handleRestart} style={{ marginTop: '20px', padding: '15px 30px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold' }}>CHƠI LẠI</button>
+                            <p style={{ fontSize: '18px' }}>Time's up! You haven't defeated all the monsters.</p>
+                            <button onClick={handleRestart} style={{ marginTop: '20px', padding: '15px 30px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold' }}>PLAY AGAIN</button>
                         </div>
                     )}
 
                     {phase === 'victory' && (
                         <div style={{ background: 'rgba(0,0,0,0.8)', padding: '30px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #4ade80', width: '100%', marginTop: '-200px' }}>
-                            <h2 style={{ color: '#4ade80', fontSize: '30px', margin: '0 0 10px 0' }}>🎉 CHIẾN THẮNG!</h2>
-                            <p style={{ fontSize: '24px', margin: '15px 0' }}>Tổng điểm: <b style={{ color: '#fbbf24' }}>{score}</b></p>
-                            <p style={{ fontSize: '16px', color: '#9ca3af', marginTop: '20px' }}>Hãy bước qua cổng cầu vồng để tiến tới thử thách tiếp theo.</p>
+                            <h2 style={{ color: '#4ade80', fontSize: '30px', margin: '0 0 10px 0' }}>🎉 VICTORY!</h2>
+                            <p style={{ fontSize: '24px', margin: '15px 0' }}>Total Score: <b style={{ color: '#fbbf24' }}>{score}</b></p>
+                            <p style={{ fontSize: '16px', color: '#9ca3af', marginTop: '20px' }}>Step through the rainbow bridge to proceed to the next challenge.</p>
                         </div>
                     )}
                 </div>
@@ -388,7 +388,7 @@ export default function Scene3_Forest() {
                             style={{ maxWidth: '90vw', maxHeight: '80vh', objectFit: 'contain', borderRadius: '10px' }}
                         />
                         <p style={{ color: '#fff', marginTop: '20px', fontSize: '24px', fontWeight: 'bold', animation: 'blink 1.5s infinite' }}>
-                            [ NHẤN PHÍM ENTER ĐỂ TIẾP TỤC ]
+                            [ PRESS ENTER TO CONTINUE ]
                         </p>
                         <style>{`@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }`}</style>
                     </div>

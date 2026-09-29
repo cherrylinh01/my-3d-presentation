@@ -2,18 +2,19 @@
 import React, { useMemo } from 'react'
 import { Environment, Sky, Float, Text, Clouds, Cloud, ContactShadows } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
-import { setState } from 'playroomkit'
 import * as THREE from 'three'
 import DynamicModel from '../components/3d/DynamicModel'
 
-import { setState, isHost } from 'playroomkit'
+// IMPORT ĐÚNG CHUẨN HOOK CỦA PLAYROOMKIT
+import { useMultiplayerState } from 'playroomkit'
 
 export default function Scene1_Cloud() {
+    // KHAI BÁO STATE MẠNG: Đồng bộ 'globalScene' và lấy hàm setCurrentScene
+    const [currentScene, setCurrentScene] = useMultiplayerState('globalScene', 'scene1');
+
     const handleStartCollision = () => {
-        // Chỉ Trưởng phòng chạm vào mới có tác dụng, và dùng đúng key 'globalScene'
-        if (isHost()) {
-            setState('globalScene', 'scene2');
-        }
+        // Gọi hàm setCurrentScene để ép React chuyển màn cho tất cả người chơi
+        setCurrentScene('scene2');
     };
 
     const floatingClouds = useMemo(() => {

@@ -114,21 +114,22 @@ export default function Player() {
     // ==========================================
     // LẮNG NGHE SỰ KIỆN DỊCH CHUYỂN TỪ SCENE KHÁC
     // ==========================================
-    // Đặt đoạn này bên trong component Player chính (không phải OtherPlayer)
     useEffect(() => {
         const handleTeleport = (e) => {
             const { x, y, z } = e.detail;
 
-            // Ép vị trí vật lý của nhân vật về tọa độ mới
-            if (playerRef.current) {
-                playerRef.current.setTranslation({ x, y, z }, true);
-                playerRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true); // Xóa gia tốc rơi cũ
+            // SỬ DỤNG bodyRef THAY VÌ playerRef (vì bodyRef mới chứa RigidBody của Rapier)
+            if (bodyRef.current) {
+                bodyRef.current.setTranslation({ x, y, z }, true);
+                bodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true); // Xóa gia tốc rơi
             }
         };
 
         window.addEventListener('teleportPlayer', handleTeleport);
         return () => window.removeEventListener('teleportPlayer', handleTeleport);
-    }, []);
+
+        // THÊM bodyRef VÀO MẢNG PHỤ THUỘC ĐỂ LUÔN CẬP NHẬT REF MỚI NHẤT
+    }, [bodyRef]);
 
     useEffect(() => {
         me.setState('action', action);

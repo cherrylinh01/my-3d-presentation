@@ -2,11 +2,10 @@ import React, { useMemo, useRef, useState, useEffect } from 'react'
 import { Text, Html, Float } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
-import { setState } from 'playroomkit'
 import * as THREE from 'three'
 
-import { useMultiplayerState } from 'playroomkit'
-import { setState, useMultiplayerState, isHost } from 'playroomkit'
+// FIX 1: Gom chung import của PlayroomKit cho gọn gàng, tránh lỗi
+import { useMultiplayerState, isHost } from 'playroomkit'
 
 const SCRIPT = [
     { name: "Narrator 😈", text: "Hahaha! Welcome to the Memory Library! To open the next door, you must absorb all 6767 memory pieces of Success here. You have 1 minute... Starting now!!", speed: 1, chunked: false },
@@ -69,16 +68,23 @@ function MindmapKeyAnimation({ onComplete }) {
 
 export default function Scene2_Memory() {
     const vortexRef = useRef();
+
+    // FIX 2: Thêm hook quản lý Scene để React re-render mượt mà khi qua màn
+    const [currentScene, setCurrentScene] = useMultiplayerState('globalScene', 'scene1');
     const [step, setStep] = useMultiplayerState('dialogueStep_Scene2', 0);
     const [doorOpen, setDoorOpen] = useMultiplayerState('doorOpen_Scene2', false);
     const [fadeOut, setFadeOut] = useState(false);
 
     const [texMindmap, setTexMindmap] = useState(null);
     const [texLineGraph, setTexLineGraph] = useState(null);
-
     const [activeBoard, setActiveBoard] = useState(null);
 
     const currentScript = SCRIPT[step];
+
+    // FIX 3: GỌI LỆNH TELEPORT KHI VỪA VÀO SCENE 2 ĐỂ NHÂN VẬT KHÔNG BỊ RƠI
+    useEffect(() => {
+        window.dispatchEvent(new CustomEvent('teleportPlayer', { detail: { x: 0, y: 5, z: 5 } }));
+    }, []);
 
     useEffect(() => {
         new THREE.TextureLoader().load('/mindmap_chunks.jpg', setTexMindmap);
@@ -105,13 +111,19 @@ export default function Scene2_Memory() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    const handleNextDialogue = () => { if (step < SCRIPT.length - 1) setStep(step + 1); };
+    // FIX 4: Chặn người chơi spam nút "Tiếp tục"
+    const handleNextDialogue = () => {
+        if (isHost() && step < SCRIPT.length - 1) setStep(step + 1);
+    };
 
     const triggerDoorOpen = () => {
         setDoorOpen(true);
         setTimeout(() => {
             setFadeOut(true);
-            setTimeout(() => setState('globalScene', 'scene3'), 1000);
+            setTimeout(() => {
+                // FIX 5: Dùng hàm setCurrentScene và chỉ cho Host chuyển cảnh để tránh lag
+                if (isHost()) setCurrentScene('scene3');
+            }, 1000);
         }, 1500);
     };
 
@@ -149,20 +161,13 @@ export default function Scene2_Memory() {
 
     const faceAngles = currentScript.chunked ? [0, Math.PI] : [0, Math.PI / 2, Math.PI, -Math.PI / 2];
 
-    // TÍNH TOÁN VỊ TRÍ ĐỘNG CHO BẢNG THÔNG BÁO
-    // Khi có hình ảnh (activeBoard), hạ thấp bảng xuống dưới mép hình [0, 1.8, -9.5]
-    // Khi chưa có hình ảnh, để ở độ cao vừa tầm mắt gần cửa [0, 4, -12]
     const dialogPosition = activeBoard ? [0, 1.8, -9.5] : [0, 4, -12];
-
     const isBrightRoom = step >= 4;
 
     return (
         <group>
-            {/* Đổi màu nền từ đen tuyền sang xanh than sáng hơn khi có hình ảnh */}
             <color attach="background" args={[isBrightRoom ? '#1e293b' : '#050505']} />
-            {/* Tăng cường độ ánh sáng môi trường từ 0.5 lên 2.5 để nhìn rõ vạn vật */}
             <ambientLight intensity={isBrightRoom ? 2.5 : 0.5} />
-            {/* Thêm một đèn chiếu hắt từ trên xuống để làm rõ mặt sàn và nhân vật */}
             <directionalLight position={[10, 20, 10]} intensity={isBrightRoom ? 1.5 : 0} />
             <pointLight position={[0, 5, 0]} intensity={3} color={currentScript.chunked ? "#fbbf24" : "#3b82f6"} distance={50} />
 
@@ -211,7 +216,6 @@ export default function Scene2_Memory() {
                 <mesh position={[0, 0, 0]}><boxGeometry args={[6, 10, 0.5]} /><meshStandardMaterial color="#334155" /></mesh>
             </RigidBody>
 
-            {/* BẢNG THÔNG BÁO NẰM TRONG KHÔNG GIAN 3D */}
             <Html center position={dialogPosition} zIndexRange={[100, 0]}>
                 <div style={{ width: '800px', pointerEvents: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <div style={{

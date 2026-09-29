@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, CapsuleCollider } from '@react-three/rapier'
-import { myPlayer, usePlayersList } from 'playroomkit'
+import { myPlayer, usePlayersList, usePlayerState } from 'playroomkit'
 import { useControls } from '../../hooks/useControls'
 import * as THREE from 'three'
 import { useGLTF, useAnimations, Text } from '@react-three/drei'
@@ -32,18 +32,10 @@ function AnimatedPlayerModel({ scale, action, modelPath = '/models/maincharacter
 
 function OtherPlayer({ player }) {
     const group = useRef();
-    const [action, setAction] = useState(player.getState('action') || 'Idle');
-
+    const [action] = usePlayerState(player, 'action', 'Idle');
     const profile = player.getProfile();
     const playerName = profile?.name || "Khách";
     const playerColor = profile?.color?.hex || "#fbbf24";
-
-    useEffect(() => {
-        // Đổi từ onSetState thành onState
-        player.onState('action', (newAction) => {
-            if (newAction) setAction(newAction);
-        });
-    }, [player]);
 
     useFrame(() => {
         if (!group.current) return;

@@ -215,6 +215,9 @@ export default function Player() {
 
         // Luôn luôn nhìn thẳng vào tâm điểm (đầu nhân vật)
         state.camera.lookAt(pos.x, targetY, pos.z);
+
+        me.setState('pos', { x: pos.x, y: pos.y, z: pos.z });
+        me.setState('rot', [0, playerGroupRef.current.rotation.y, 0]);
     });
 
     return (

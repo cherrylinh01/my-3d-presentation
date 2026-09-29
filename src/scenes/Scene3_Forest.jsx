@@ -2,9 +2,11 @@ import React, { useState, useRef, useMemo, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { Text, Html, Sparkles } from '@react-three/drei'
-import { setState } from 'playroomkit'
 import * as THREE from 'three'
 import DynamicModel from '../components/3d/DynamicModel'
+
+// THÊM: Import useMultiplayerState và isHost từ playroomkit
+import { setState, useMultiplayerState, isHost } from 'playroomkit'
 
 const MONSTER_DATA = [
     { id: 1, text: "I have went to Paris last year.", isCorrect: false },
@@ -43,12 +45,8 @@ function Monster({ data, onHit }) {
     const ref = useRef();
     const [status, setStatus] = useState('alive');
 
-    const startX = useMemo(() => (Math.random() - 0.5) * 40, []);
-    const startZ = useMemo(() => -40 - Math.random() * 30, []);
-    const speed = useMemo(() => 3 + Math.random() * 3, []);
-
-    const targetX = useMemo(() => (Math.random() - 0.5) * 20, []);
-    const wobbleOffset = useMemo(() => Math.random() * Math.PI * 2, []);
+    // Lấy tọa độ đồng bộ từ Trưởng phòng thay vì tự random trên từng máy
+    const { startX, startZ, speed, targetX, wobbleOffset } = data;
 
     useEffect(() => {
         if (ref.current) {
@@ -73,10 +71,10 @@ function Monster({ data, onHit }) {
         if (status !== 'alive') return;
         if (!data.isCorrect) {
             setStatus('exploded');
-            onHit(10);
+            onHit(10); // Đánh trúng quái sai ngữ pháp
         } else {
             setStatus('wrong');
-            onHit(-5);
+            onHit(-5); // Đánh nhầm quái đúng ngữ pháp
             setTimeout(() => setStatus('alive'), 1000);
         }
     };
@@ -103,41 +101,60 @@ function Monster({ data, onHit }) {
 }
 
 export default function Scene3_Forest() {
-    const [phase, setPhase] = useState('intro');
-    const [score, setScore] = useState(0);
-    const [timeLeft, setTimeLeft] = useState(120);
-    const [activeMonsters, setActiveMonsters] = useState([]);
-    const [spawnCount, setSpawnCount] = useState(0);
+    // CHUYỂN ĐỔI: Dùng useMultiplayerState để đồng bộ toàn mạng
+    const [phase, setPhase] = useMultiplayerState('scene3_phase', 'intro');
+    const [score, setScore] = useMultiplayerState('scene3_score', 0);
+    const [timeLeft, setTimeLeft] = useMultiplayerState('scene3_time', 120);
+    const [activeMonsters, setActiveMonsters] = useMultiplayerState('scene3_monsters', []);
+    const [spawnCount, setSpawnCount] = useMultiplayerState('scene3_spawnCount', 0);
 
+    // CHỈ TRƯỞNG PHÒNG (HOST) MỚI CÓ QUYỀN SINH QUÁI
     useEffect(() => {
-        if (phase === 'playing' && spawnCount < MONSTER_DATA.length) {
+        if (isHost() && phase === 'playing' && spawnCount < MONSTER_DATA.length) {
             const timer = setTimeout(() => {
-                setActiveMonsters(prev => [...prev, MONSTER_DATA[spawnCount]]);
+                const newMonster = {
+                    ...MONSTER_DATA[spawnCount],
+                    // Trưởng phòng tính toán tọa độ ngẫu nhiên rồi gửi cho cả phòng
+                    startX: (Math.random() - 0.5) * 40,
+                    startZ: -40 - Math.random() * 30,
+                    speed: 3 + Math.random() * 3,
+                    targetX: (Math.random() - 0.5) * 20,
+                    wobbleOffset: Math.random() * Math.PI * 2,
+                };
+                setActiveMonsters(prev => [...prev, newMonster]);
                 setSpawnCount(c => c + 1);
-            }, 2500); // Tốc độ sinh quái: 2.5 giây 1 con
+            }, 2500);
             return () => clearTimeout(timer);
         }
-    }, [phase, spawnCount]);
+    }, [phase, spawnCount]); // Không cần đưa activeMonsters vào đây để tránh re-render liên tục
 
-    // BẮT SỰ KIỆN PHÍM ENTER ĐỂ QUA SCENE 4
+    // ĐỒNG BỘ PHÍM ENTER ĐỂ CHUYỂN SCENE CHO CẢ PHÒNG
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (phase === 'transition_to_4' && e.key === 'Enter') {
-                setState('currentScene', 'scene4');
+                setState('currentScene', 'scene4'); // Lệnh này tự động ép cả phòng chuyển màn
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [phase]);
 
+    // CHỈ TRƯỞNG PHÒNG ĐẾM GIỜ THỜI GIAN
     useEffect(() => {
-        if (phase === 'playing' && timeLeft > 0) {
+        if (isHost() && phase === 'playing' && timeLeft > 0) {
             const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
             return () => clearInterval(timer);
-        } else if (phase === 'playing' && timeLeft === 0) {
+        } else if (isHost() && phase === 'playing' && timeLeft <= 0) {
             setPhase('gameover');
         }
     }, [phase, timeLeft]);
+
+    // CHỈ TRƯỞNG PHÒNG KIỂM TRA ĐIỀU KIỆN CHIẾN THẮNG
+    useEffect(() => {
+        if (isHost() && phase === 'playing' && spawnCount === MONSTER_DATA.length && activeMonsters.filter(m => !m.isCorrect).length === 0) {
+            setPhase('victory');
+        }
+    }, [phase, spawnCount, activeMonsters]);
 
     const treeModels = ['plant_bush.glb', 'plant_bushLarge.glb', 'tree_oak_dark.glb'];
     const flowerModels = ['flower_redA.glb', 'flower_purpleA.glb', 'flower_yellowA.glb'];
@@ -172,6 +189,7 @@ export default function Scene3_Forest() {
         return items;
     }, []);
 
+    // Bất kỳ ai click cũng gửi lệnh cập nhật điểm và xóa quái cho cả phòng
     const handleHitMonster = (points, id) => {
         setScore(s => s + points);
         if (points > 0) {
@@ -179,6 +197,7 @@ export default function Scene3_Forest() {
         }
     };
 
+    // Bất kỳ ai vào vùng cầu vồng cũng kích hoạt chuyển màn cho cả phòng
     const handleNextScene = () => {
         setPhase('transition_to_4');
     };
@@ -186,13 +205,10 @@ export default function Scene3_Forest() {
     const handleRestart = () => {
         setScore(0);
         setTimeLeft(120);
-        setActiveMonsters(MONSTER_DATA);
+        setActiveMonsters([]);
+        setSpawnCount(0);
         setPhase('playing');
     };
-
-    if (phase === 'playing' && spawnCount === MONSTER_DATA.length && activeMonsters.filter(m => !m.isCorrect).length === 0) {
-        setPhase('victory');
-    }
 
     const tableStyle = { width: '100%', borderCollapse: 'collapse', marginBottom: '15px', fontSize: '14px', background: '#fff', color: '#000' };
     const thStyle = { border: '1px solid #000', padding: '8px', fontWeight: 'bold', background: '#e2e8f0', textAlign: 'center' };
@@ -271,43 +287,6 @@ export default function Scene3_Forest() {
                                 </tbody>
                             </table>
 
-                            <table style={tableStyle}>
-                                <thead>
-                                    <tr>
-                                        <th style={thStyle}>Tense</th>
-                                        <th style={thStyle}>Use (Keyword)</th>
-                                        <th style={thStyle}>Structure</th>
-                                        <th style={thStyle}>Example</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Simple</td>
-                                        <td style={tdStyle}>Habits, facts</td>
-                                        <td style={tdStyle}>V(s/es)</td>
-                                        <td style={tdStyle}><i>She <b>studies</b> English every day.</i></td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Continuous</td>
-                                        <td style={tdStyle}>Happening right now</td>
-                                        <td style={tdStyle}>am/is/are + V-ing</td>
-                                        <td style={tdStyle}><i>She <b>is studying</b> English right now.</i></td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Perfect</td>
-                                        <td style={tdStyle}>Past connected to now</td>
-                                        <td style={tdStyle}>have/has + V3/ed</td>
-                                        <td style={tdStyle}><i>She <b>has studied</b> English for 3 years.</i></td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Past Simple</td>
-                                        <td style={tdStyle}>Finished action, specific time</td>
-                                        <td style={tdStyle}>V2/ed</td>
-                                        <td style={tdStyle}><i>She <b>studied</b> English last night.</i></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
                             <h3 style={{ color: '#ef4444', textAlign: 'center', marginTop: '20px' }}>System: click (or tap) on the monsters with WRONG GRAMMAR SENTENCES!</h3>
                             <button onClick={() => setPhase('playing')} style={{ marginTop: '10px', padding: '15px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', width: '100%', fontSize: '18px', fontWeight: 'bold' }}>
                                 START (2 Minutes)
@@ -318,7 +297,7 @@ export default function Scene3_Forest() {
                     {phase === 'playing' && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: '-250px' }}>
                             <div style={{ fontSize: '28px', fontWeight: '900', color: 'white', textShadow: '2px 2px 0 #000' }}>
-                                SCORE: <span style={{ color: score < 0 ? '#ef4444' : '#4ade80' }}>{score}</span>
+                                TEAM SCORE: <span style={{ color: score < 0 ? '#ef4444' : '#4ade80' }}>{score}</span>
                             </div>
                             <div style={{ fontSize: '28px', fontWeight: '900', color: timeLeft <= 10 ? '#ef4444' : 'white', textShadow: '2px 2px 0 #000' }}>
                                 TIME: <span>{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
@@ -330,13 +309,13 @@ export default function Scene3_Forest() {
                         <div style={{ background: 'rgba(0,0,0,0.8)', padding: '30px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #ef4444', width: '100%', marginTop: '-200px' }}>
                             <h2 style={{ color: '#ef4444', fontSize: '30px' }}>☠️ GAME OVER</h2>
                             <p style={{ fontSize: '18px' }}>Time's up! You haven't defeated all the monsters.</p>
-                            <button onClick={handleRestart} style={{ marginTop: '20px', padding: '15px 30px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold' }}>PLAY AGAIN</button>
+                            <button onClick={handleRestart} style={{ marginTop: '20px', padding: '15px 30px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold' }}>TRY AGAIN TOGETHER</button>
                         </div>
                     )}
 
                     {phase === 'victory' && (
                         <div style={{ background: 'rgba(0,0,0,0.8)', padding: '30px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #4ade80', width: '100%', marginTop: '-200px' }}>
-                            <h2 style={{ color: '#4ade80', fontSize: '30px', margin: '0 0 10px 0' }}>🎉 VICTORY!</h2>
+                            <h2 style={{ color: '#4ade80', fontSize: '30px', margin: '0 0 10px 0' }}>🎉 TEAM VICTORY!</h2>
                             <p style={{ fontSize: '24px', margin: '15px 0' }}>Total Score: <b style={{ color: '#fbbf24' }}>{score}</b></p>
                             <p style={{ fontSize: '16px', color: '#9ca3af', marginTop: '20px' }}>Step through the rainbow bridge to proceed to the next challenge.</p>
                         </div>
@@ -348,7 +327,6 @@ export default function Scene3_Forest() {
                 <Monster key={monster.id} data={monster} onHit={(pts) => handleHitMonster(pts, monster.id)} />
             ))}
 
-            {/* FIX: CẦU VỒNG XẾP LỚP MỎNG & ĐÚNG ĐỘ DÀY */}
             {phase === 'victory' && (
                 <group position={[0, 0, -25]}>
                     <mesh position={[0, 4, 0]}>
@@ -374,7 +352,6 @@ export default function Scene3_Forest() {
                 </group>
             )}
 
-            {/* FIX: MÀN HÌNH CHUYỂN CẢNH MINDMAP LUÔN HIỆN TRƯỚC CAMERA */}
             {phase === 'transition_to_4' && (
                 <Html position={[0, 4, -25]} center zIndexRange={[99999, 0]}>
                     <div style={{

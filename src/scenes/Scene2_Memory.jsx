@@ -5,6 +5,8 @@ import { RigidBody } from '@react-three/rapier'
 import { setState } from 'playroomkit'
 import * as THREE from 'three'
 
+import { useMultiplayerState } from 'playroomkit'
+
 const SCRIPT = [
     { name: "Narrator 😈", text: "Hahaha! Welcome to the Memory Library! To open the next door, you must absorb all 6767 memory pieces of Success here. You have 1 minute... Starting now!!", speed: 1, chunked: false },
     { name: "Main 😰", text: "Wait! The information is flying so fast, there are so many charts and numbers, how can we read every word? Everyone spread out and find a way!", speed: 1, chunked: false },
@@ -66,8 +68,8 @@ function MindmapKeyAnimation({ onComplete }) {
 
 export default function Scene2_Memory() {
     const vortexRef = useRef();
-    const [step, setStep] = useState(0);
-    const [doorOpen, setDoorOpen] = useState(false);
+    const [step, setStep] = useMultiplayerState('dialogueStep_Scene2', 0);
+    const [doorOpen, setDoorOpen] = useMultiplayerState('doorOpen_Scene2', false);
     const [fadeOut, setFadeOut] = useState(false);
 
     const [texMindmap, setTexMindmap] = useState(null);

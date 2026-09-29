@@ -1,25 +1,40 @@
 // src/scenes/Scene1_Cloud.jsx
-import React, { useMemo } from 'react'
-import { Environment, Sky, Float, Text, Clouds, Cloud, ContactShadows } from '@react-three/drei'
+import React, { useMemo, useEffect } from 'react'
+import { Environment, Sky, Float, Text, ContactShadows } from '@react-three/drei'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
 import DynamicModel from '../components/3d/DynamicModel'
 
-// IMPORT ĐÚNG CHUẨN HOOK CỦA PLAYROOMKIT
-import { useMultiplayerState } from 'playroomkit'
+// IMPORT THÊM isHost TỪ PLAYROOMKIT
+import { useMultiplayerState, isHost } from 'playroomkit'
 
 export default function Scene1_Cloud() {
-    // KHAI BÁO STATE MẠNG: Đồng bộ 'globalScene' và lấy hàm setCurrentScene
     const [currentScene, setCurrentScene] = useMultiplayerState('globalScene', 'scene1');
 
+    // CÁCH 1: Va chạm bằng cách đi vào (giữ nguyên để dự phòng)
     const handleStartCollision = () => {
-        // Gọi hàm setCurrentScene để ép React chuyển màn cho tất cả người chơi
         setCurrentScene('scene2');
     };
 
+    // CÁCH 2 (MỚI): PHÍM TẮT ẨN DÀNH CHO TRƯỞNG PHÒNG
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Nếu bấm phím Enter VÀ đang là Trưởng phòng -> Ép chuyển sang Scene 2
+            if (e.key === 'Enter' && isHost()) {
+                setCurrentScene('scene2');
+            }
+        };
+
+        // Bật lắng nghe bàn phím
+        window.addEventListener('keydown', handleKeyDown);
+
+        // Dọn dẹp khi chuyển sang màn khác
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [setCurrentScene]);
+
     const floatingClouds = useMemo(() => {
         const clouds = [];
-        for (let i = 0; i < 50; i++) { // Tăng lên 50 đám mây
+        for (let i = 0; i < 50; i++) {
             const radius = 15 + Math.random() * 40;
             const theta = Math.random() * 2 * Math.PI;
             const x = radius * Math.cos(theta);
@@ -30,7 +45,7 @@ export default function Scene1_Cloud() {
                 id: i,
                 position: [x, y, z],
                 rotation: [0, Math.random() * Math.PI, 0],
-                scale: 1 + Math.random() * 3, // Mây to hơn
+                scale: 1 + Math.random() * 3,
             });
         }
         return clouds;
@@ -51,7 +66,7 @@ export default function Scene1_Cloud() {
                 </mesh>
             </RigidBody>
 
-            {/* Bảng Danh sách nhóm - Đứng như bảng thành tích, căn giữa */}
+            {/* Bảng Danh sách nhóm */}
             <Float speed={2} floatIntensity={0.2} floatingRange={[-0.1, 0.1]}>
                 <group position={[10, 3, -5]} rotation={[0, -0.4, 0]}>
                     <Text
@@ -60,7 +75,7 @@ export default function Scene1_Cloud() {
                         color="#ffffff"
                         outlineWidth={0.03}
                         outlineColor="#000000"
-                        textAlign="center" /* Căn giữa */
+                        textAlign="center"
                         lineHeight={1.6}
                     >
                         DANH SÁCH NHÓM{"\n"}
@@ -73,7 +88,7 @@ export default function Scene1_Cloud() {
                 </group>
             </Float>
 
-            {/* Nút START tàng hình, chỉ hiển thị chữ */}
+            {/* Nút START (vẫn giữ lại khối va chạm) */}
             <RigidBody type="fixed" colliders={false} position={[0, 1.5, -8]}>
                 <CuboidCollider args={[3, 2, 1]} sensor onIntersectionEnter={handleStartCollision} />
                 <Float speed={4} floatIntensity={0.5}>
@@ -88,7 +103,7 @@ export default function Scene1_Cloud() {
                 </Float>
             </RigidBody>
 
-            {/* Rải mây 3D (cloudfake.glb) */}
+            {/* Rải mây 3D */}
             {floatingClouds.map((cloud) => (
                 <Float key={cloud.id} speed={1.5} floatIntensity={1}>
                     <DynamicModel fileName="cloudfake.glb" position={cloud.position} rotation={cloud.rotation} scale={cloud.scale} />

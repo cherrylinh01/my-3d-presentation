@@ -5,32 +5,27 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
 import DynamicModel from '../components/3d/DynamicModel'
 
-// CHÚ Ý: Đã xóa useMultiplayerState, chỉ giữ lại isHost
-import { isHost } from 'playroomkit'
+import { useMultiplayerState, isHost } from 'playroomkit'
 
-// Nhận hàm onSceneChange từ SceneManager truyền xuống (props)
-export default function Scene1_Cloud({ onSceneChange }) {
+export default function Scene1_Cloud() {
+    // Tự quản lý và đồng bộ trực tiếp với state chung của phòng
+    const [currentScene, setCurrentScene] = useMultiplayerState('globalScene', 'scene1');
 
-    // CÁCH 1: Va chạm bằng cách đi vào (gọi thẳng hàm của Cha)
+    // CÁCH 1: Va chạm vào khu vực START
     const handleStartCollision = () => {
-        onSceneChange('scene2');
+        setCurrentScene('scene2');
     };
 
-    // CÁCH 2: PHÍM TẮT ẨN DÀNH CHO TRƯỞNG PHÒNG
+    // CÁCH 2: Phím tắt ẩn Enter dành cho Chủ phòng (Host)
     useEffect(() => {
         const handleKeyDown = (e) => {
-            // Nếu bấm phím Enter VÀ đang là Trưởng phòng -> Ép chuyển sang Scene 2
             if (e.key === 'Enter' && isHost()) {
-                onSceneChange('scene2');
+                setCurrentScene('scene2');
             }
         };
-
-        // Bật lắng nghe bàn phím
         window.addEventListener('keydown', handleKeyDown);
-
-        // Dọn dẹp khi chuyển sang màn khác
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [onSceneChange]);
+    }, [setCurrentScene]);
 
     const floatingClouds = useMemo(() => {
         const clouds = [];
@@ -88,7 +83,7 @@ export default function Scene1_Cloud({ onSceneChange }) {
                 </group>
             </Float>
 
-            {/* Nút START (vẫn giữ lại khối va chạm) */}
+            {/* Nút START */}
             <RigidBody type="fixed" colliders={false} position={[0, 1.5, -8]}>
                 <CuboidCollider args={[3, 2, 1]} sensor onIntersectionEnter={handleStartCollision} />
                 <Float speed={4} floatIntensity={0.5}>

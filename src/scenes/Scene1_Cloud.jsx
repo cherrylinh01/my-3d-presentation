@@ -6,9 +6,14 @@ import { setState } from 'playroomkit'
 import * as THREE from 'three'
 import DynamicModel from '../components/3d/DynamicModel'
 
+import { setState, isHost } from 'playroomkit'
+
 export default function Scene1_Cloud() {
     const handleStartCollision = () => {
-        setState('currentScene', 'scene2');
+        // Chỉ Trưởng phòng chạm vào mới có tác dụng, và dùng đúng key 'globalScene'
+        if (isHost()) {
+            setState('globalScene', 'scene2');
+        }
     };
 
     const floatingClouds = useMemo(() => {

@@ -5,23 +5,23 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
 import DynamicModel from '../components/3d/DynamicModel'
 
-// IMPORT THÊM isHost TỪ PLAYROOMKIT
-import { useMultiplayerState, isHost } from 'playroomkit'
+// CHÚ Ý: Đã xóa useMultiplayerState, chỉ giữ lại isHost
+import { isHost } from 'playroomkit'
 
-export default function Scene1_Cloud() {
-    const [currentScene, setCurrentScene] = useMultiplayerState('globalScene', 'scene1');
+// Nhận hàm onSceneChange từ SceneManager truyền xuống (props)
+export default function Scene1_Cloud({ onSceneChange }) {
 
-    // CÁCH 1: Va chạm bằng cách đi vào (giữ nguyên để dự phòng)
+    // CÁCH 1: Va chạm bằng cách đi vào (gọi thẳng hàm của Cha)
     const handleStartCollision = () => {
-        setCurrentScene('scene2');
+        onSceneChange('scene2');
     };
 
-    // CÁCH 2 (MỚI): PHÍM TẮT ẨN DÀNH CHO TRƯỞNG PHÒNG
+    // CÁCH 2: PHÍM TẮT ẨN DÀNH CHO TRƯỞNG PHÒNG
     useEffect(() => {
         const handleKeyDown = (e) => {
             // Nếu bấm phím Enter VÀ đang là Trưởng phòng -> Ép chuyển sang Scene 2
             if (e.key === 'Enter' && isHost()) {
-                setCurrentScene('scene2');
+                onSceneChange('scene2');
             }
         };
 
@@ -30,7 +30,7 @@ export default function Scene1_Cloud() {
 
         // Dọn dẹp khi chuyển sang màn khác
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [setCurrentScene]);
+    }, [onSceneChange]);
 
     const floatingClouds = useMemo(() => {
         const clouds = [];

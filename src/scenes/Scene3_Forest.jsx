@@ -240,7 +240,6 @@ export default function Scene3_Forest() {
             )}
 
             <Html center position={[0, 4, -5]} zIndexRange={[100, 0]}>
-                {/* 3. SỬA LỖI TẤM KHIÊN TÀNG HÌNH BẰNG pointerEvents */}
                 <div style={{
                     width: '850px',
                     pointerEvents: phase === 'playing' ? 'none' : 'auto',
@@ -249,6 +248,8 @@ export default function Scene3_Forest() {
                     flexDirection: 'column',
                     alignItems: 'center'
                 }}>
+                    {/* ... (Giữ nguyên các khối intro và lesson) ... */}
+
                     {phase === 'intro' && (
                         <div style={{ background: 'rgba(0,0,0,0.8)', padding: '20px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #ef4444', width: '100%' }}>
                             <h2 style={{ color: '#f87171' }}>👺 Lord of the jungle:</h2>
@@ -259,97 +260,7 @@ export default function Scene3_Forest() {
                         </div>
                     )}
 
-                    {phase === 'lesson' && (
-                        <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '10px', color: '#000', width: '100%', maxHeight: '75vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
-                            <h2 style={{ color: '#dc2626', margin: '0 0 15px 0', textAlign: 'center' }}>The comparison between the Present Perfect and Past Simple:</h2>
-
-                            <h3 style={{ margin: '10px 0 5px 0' }}>Similarities</h3>
-                            <p style={{ margin: '0 0 20px 20px', fontWeight: 'bold', fontSize: '16px' }}>Both are used to talk about events or actions that happened in the past.</p>
-
-                            <h3 style={{ margin: '10px 0 10px 0' }}>Differences</h3>
-                            <table style={tableStyle}>
-                                <thead>
-                                    <tr>
-                                        <th style={thStyle}>Feature</th>
-                                        <th style={thStyle}>Present Perfect</th>
-                                        <th style={thStyle}>Past Simple</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Connection to Present</td>
-                                        <td style={tdStyle}>Connects to the present (the result still relevant now).</td>
-                                        <td style={tdStyle}>Finished action in the past, no connection to now.</td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Time</td>
-                                        <td style={tdStyle}>No specific time. Or started in the past and still continues.</td>
-                                        <td style={tdStyle}>Specific, clear time in the past.</td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Common Words</td>
-                                        <td style={tdStyle}>never, ever, for, since, yet, already</td>
-                                        <td style={tdStyle}>yesterday, last year, ago, when, in+ year</td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Example</td>
-                                        <td style={tdStyle}>I have lost my phone. (I don't have it now).</td>
-                                        <td style={tdStyle}>I lost my phone yesterday. (I have a new phone now).</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                            <h2 style={{ color: '#2563eb', margin: '30px 0 15px 0', textAlign: 'center', borderTop: '2px dashed #cbd5e1', paddingTop: '20px' }}>Tense Summary</h2>
-                            <table style={tableStyle}>
-                                <thead>
-                                    <tr>
-                                        <th style={thStyle}>Tense</th>
-                                        <th style={thStyle}>Use (Keyword)</th>
-                                        <th style={thStyle}>Structure</th>
-                                        <th style={thStyle}>Example</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Simple</td>
-                                        <td style={tdStyle}>Habits, facts</td>
-                                        <td style={tdStyle}>V(s/es)</td>
-                                        <td style={tdStyle}><i>She <b>studies</b> English every day.</i></td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Continuous</td>
-                                        <td style={tdStyle}>Happening right now</td>
-                                        <td style={tdStyle}>am/is/are + V-ing</td>
-                                        <td style={tdStyle}><i>She <b>is studying</b> English right now.</i></td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Perfect</td>
-                                        <td style={tdStyle}>Past connected to now</td>
-                                        <td style={tdStyle}>have/has + V3/ed</td>
-                                        <td style={tdStyle}><i>She <b>has studied</b> English for 3 years.</i></td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Past Simple</td>
-                                        <td style={tdStyle}>Finished action, specific time</td>
-                                        <td style={tdStyle}>V2/ed</td>
-                                        <td style={tdStyle}><i>She <b>studied</b> English last night.</i></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                            <h3 style={{ color: '#ef4444', textAlign: 'center', marginTop: '30px' }}>System: click (or tap) on the monsters with WRONG GRAMMAR SENTENCES!</h3>
-                            <button onClick={() => {
-                                // CHỈ TRƯỞNG PHÒNG MỚI CÓ THỂ BẮT ĐẦU GAME
-                                if (isHost()) {
-                                    setPhase('playing');
-                                } else {
-                                    alert("Chỉ Trưởng phòng (Host) mới có thể bấm nút Bắt đầu!");
-                                }
-                            }} style={{ pointerEvents: 'auto', marginTop: '15px', padding: '15px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', width: '100%', fontSize: '20px', fontWeight: 'bold', textTransform: 'uppercase', boxShadow: '0 4px 6px rgba(239, 68, 68, 0.4)' }}>
-                                START (2 Minutes)
-                            </button>
-                        </div>
-                    )}
+                    {/* ... (Giữ nguyên bảng so sánh ngữ pháp phần lesson) ... */}
 
                     {phase === 'playing' && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: '-250px' }}>
@@ -362,11 +273,12 @@ export default function Scene3_Forest() {
                         </div>
                     )}
 
+                    {/* CẬP NHẬT 1: Màn hình GAME OVER giống Màn hình Victory */}
                     {phase === 'gameover' && (
                         <div style={{ pointerEvents: 'auto', background: 'rgba(0,0,0,0.8)', padding: '30px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #ef4444', width: '100%', marginTop: '-200px' }}>
-                            <h2 style={{ color: '#ef4444', fontSize: '30px' }}>☠️ GAME OVER</h2>
-                            <p style={{ fontSize: '18px' }}>Time's up! You haven't defeated all the monsters.</p>
-                            <button onClick={handleRestart} style={{ marginTop: '20px', padding: '15px 30px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold' }}>TRY AGAIN TOGETHER</button>
+                            <h2 style={{ color: '#ef4444', fontSize: '30px', margin: '0 0 10px 0' }}>⏱ TIME'S UP!</h2>
+                            <p style={{ fontSize: '24px', margin: '15px 0' }}>Total Score: <b style={{ color: '#fbbf24' }}>{score}</b></p>
+                            <p style={{ fontSize: '16px', color: '#9ca3af', marginTop: '20px' }}>Step through the rainbow bridge to proceed to the next challenge.</p>
                         </div>
                     )}
 
@@ -384,7 +296,8 @@ export default function Scene3_Forest() {
                 <Monster key={monster.id} data={monster} onHit={(pts) => handleHitMonster(pts, monster.id)} />
             ))}
 
-            {phase === 'victory' && (
+            {/* CẬP NHẬT 2: Hiện cầu vồng nếu VICTORY HOẶC GAMEOVER */}
+            {(phase === 'victory' || phase === 'gameover') && (
                 <group position={[0, 0, -25]}>
                     <mesh position={[0, 4, 0]}>
                         <torusGeometry args={[10, 0.4, 16, 100, Math.PI]} />

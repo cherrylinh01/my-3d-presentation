@@ -155,10 +155,10 @@ export default function Scene4_Core() {
                 <mesh><boxGeometry args={[100, 1, 100]} /><meshBasicMaterial color="#000000" transparent opacity={0} /></mesh>
             </RigidBody>
 
-            {/* ÂM THANH KHI CHƠI */}
-            {phase === 'playing' && (
-                <Html><audio src="/english_audio.mp3" autoPlay loop volume={0.4} /></Html>
-            )}
+            {/* ÂM THANH XUYÊN SUỐT SCENE 4 (CODE MỚI) */}
+            <Html>
+                <audio src="/english_audio.mp3" autoPlay loop volume={0.6} />
+            </Html>
 
             {/* MÀN HÌNH CHUYỂN CẢNH MINDMAP TRƯỚC KHI VÀO GAME */}
             {phase === 'intro_mindmap' && (

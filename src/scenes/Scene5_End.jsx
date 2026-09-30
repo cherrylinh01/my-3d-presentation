@@ -1,9 +1,16 @@
+// src/scenes/Scene5_End.jsx
 import React from 'react'
 import { Text, Environment, Float, Sparkles, Stars } from '@react-three/drei'
 import { RigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 
+// 1. IMPORT HOOK CỦA PLAYROOMKIT
+import { useMultiplayerState } from 'playroomkit'
+
 export default function Scene5_End() {
+    // 2. MÓC ĐIỂM SỐ TỪ SCENE 3 BẰNG ĐÚNG TỪ KHÓA 'scene3_score'
+    const [score] = useMultiplayerState('scene3_score', 0);
+
     return (
         <group>
             <color attach="background" args={['#020617']} />
@@ -47,12 +54,24 @@ export default function Scene5_End() {
                 </mesh>
             </Float>
 
-            {/* Dòng chữ triết lý lơ lửng ở trên */}
+            {/* 3. BẢNG ĐIỂM 3D HIỂN THỊ ĐIỂM TỪ SCENE 3 TRUYỀN SANG */}
+            <Float speed={3} floatIntensity={0.5} rotationIntensity={0.1}>
+                <group position={[0, 9.5, -8]}> {/* Đặt lơ lửng ngay trên khối pha lê */}
+                    <Text position={[0, 1.2, 0]} fontSize={0.8} color="#fbbf24" outlineWidth={0.03} outlineColor="#000">
+                        FINAL TEAM SCORE
+                    </Text>
+                    <Text position={[0, 0, 0]} fontSize={2.5} fontWeight="bold" color={score > 0 ? "#4ade80" : "#f87171"} outlineWidth={0.05} outlineColor="#000">
+                        {score}
+                    </Text>
+                </group>
+            </Float>
+
+            {/* Dòng chữ triết lý lơ lửng (Được đẩy lên cao hơn một chút để nhường chỗ cho bảng điểm) */}
             <Float speed={1.5} floatIntensity={0.2}>
-                <Text position={[0, 10, -12]} fontSize={1} color="#ffffff" maxWidth={20} textAlign="center" outlineWidth={0.02} outlineColor="#000">
+                <Text position={[0, 13, -12]} fontSize={1} color="#ffffff" maxWidth={20} textAlign="center" outlineWidth={0.02} outlineColor="#000">
                     "The success you dream of may not feel like success when you finally get it."
                 </Text>
-                <Text position={[0, 7.5, -12]} fontSize={0.6} color="#38bdf8" outlineWidth={0.02} outlineColor="#000">
+                <Text position={[0, 11.5, -12]} fontSize={0.6} color="#38bdf8" outlineWidth={0.02} outlineColor="#000">
                     Enjoy the journey. You are the true success.
                 </Text>
             </Float>

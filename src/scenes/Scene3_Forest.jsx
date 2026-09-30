@@ -41,19 +41,16 @@ const MONSTER_DATA = [
     { id: 30, text: "She bought a new notebook last week.", isCorrect: true }
 ];
 
-// 1. ĐƯA DANH SÁCH RA NGOÀI ĐỂ TRÁNH RENDER LẠI
 const TREE_MODELS = ['plant_bush.glb', 'plant_bushLarge.glb', 'tree_oak_dark.glb', 'tree_blocks_dark.glb', 'tree_cone_dark.glb', 'tree_default_dark.glb', 'tree_detailed_dark.glb', 'tree_fat_darkh.glb', 'tree_palm.glb', 'tree_palmBend.glb', 'tree_palmDetailedShort.glb', 'tree_palmDetailedTall.glb', 'tree_palmShort.glb', 'tree_palmTall.glb', 'tree_pineDefaultA.glb', 'tree_pineSmallD.glb', 'tree_pineTallA.glb', 'tree_pineTallB.glb', 'tree_pineTallC.glb', 'tree_pineTallD.glb', 'tree_pineTallA_detailed.glb', 'tree_pineTallB_detailed.glb', 'tree_pineTallC_detailed.glb', 'tree_pineTallD_detailed.glb', 'tree_plateau_dark.glb', 'tree_simple_dark.glb', 'tree_small_dark.glb', 'tree_tall_dark.glb', 'tree_thin_dark.glb'];
 const FLOWER_MODELS = ['flower_redA.glb', 'flower_purpleA.glb', 'flower_yellowA.glb'];
 const GRASS_MODELS = ['grass_large.glb', 'grass.glb'];
 
-// 2. HÀM TẠO MAP AN TOÀN TUYỆT ĐỐI (Dùng vòng lặp for)
 const generateEnvironment = () => {
     const items = [];
     const generateObjects = (models, count, scaleRange) => {
         for (let i = 0; i < count; i++) {
             let x, z;
             let attempts = 0;
-            // Vòng lặp do-while an toàn, thoát nếu quá 100 lần thử
             do {
                 x = (Math.random() - 0.5) * 80;
                 z = (Math.random() - 0.5) * 80;
@@ -80,7 +77,6 @@ const generateEnvironment = () => {
 function Monster({ data, onHit }) {
     const ref = useRef();
     const [status, setStatus] = useState('alive');
-
     const { startX, startZ, speed, targetX, wobbleOffset } = data;
 
     useEffect(() => {
@@ -103,7 +99,7 @@ function Monster({ data, onHit }) {
     });
 
     const handleClick = (e) => {
-        e.stopPropagation(); // Ngăn sự kiện click xuyên qua vật thể khác
+        e.stopPropagation();
         if (status !== 'alive') return;
         if (!data.isCorrect) {
             setStatus('exploded');
@@ -191,7 +187,6 @@ export default function Scene3_Forest() {
         }
     }, [phase, spawnCount, activeMonsters]);
 
-    // Gọi hàm tạo Map an toàn 1 lần duy nhất
     const environment = useMemo(() => generateEnvironment(), []);
 
     const handleHitMonster = (points, id) => {
@@ -205,14 +200,6 @@ export default function Scene3_Forest() {
         setPhase('transition_to_4');
     };
 
-    const handleRestart = () => {
-        setScore(0);
-        setTimeLeft(120);
-        setActiveMonsters([]);
-        setSpawnCount(0);
-        setPhase('playing');
-    };
-
     const tableStyle = { width: '100%', borderCollapse: 'collapse', marginBottom: '25px', fontSize: '15px', background: '#fff', color: '#000', border: '2px solid #000' };
     const thStyle = { border: '1px solid #000', padding: '12px', fontWeight: 'bold', background: '#e2e8f0', textAlign: 'center', fontSize: '16px' };
     const tdStyle = { border: '1px solid #000', padding: '10px', textAlign: 'center' };
@@ -220,12 +207,12 @@ export default function Scene3_Forest() {
     return (
         <group>
             <ambientLight intensity={1.2} />
-            <directionalLight castShadow position={[10, 20, 10]} intensity={phase === 'victory' ? 3 : 1.5} color="#fef08a" />
+            <directionalLight castShadow position={[10, 20, 10]} intensity={(phase === 'victory' || phase === 'gameover') ? 3 : 1.5} color="#fef08a" />
 
             <RigidBody type="fixed" position={[0, -0.5, 0]}>
                 <mesh receiveShadow>
                     <boxGeometry args={[150, 1, 150]} />
-                    <meshStandardMaterial color={phase === 'victory' ? "#4ade80" : "#1b3b22"} />
+                    <meshStandardMaterial color={(phase === 'victory' || phase === 'gameover') ? "#4ade80" : "#1b3b22"} />
                 </mesh>
             </RigidBody>
 
@@ -233,7 +220,7 @@ export default function Scene3_Forest() {
                 <DynamicModel key={item.id} fileName={item.fileName} position={item.position} rotation={item.rotation} scale={item.scale} />
             ))}
 
-            {phase !== 'victory' && phase !== 'transition_to_4' && (
+            {phase !== 'victory' && phase !== 'gameover' && phase !== 'transition_to_4' && (
                 <group position={[10, 0, 0]}>
                     <DynamicModel fileName="tent_detailedOpen.glb" position={[0, 0, 0]} rotation={[0, -Math.PI / 4, 0]} scale={3.5} />
                 </group>
@@ -248,8 +235,6 @@ export default function Scene3_Forest() {
                     flexDirection: 'column',
                     alignItems: 'center'
                 }}>
-                    {/* ... (Giữ nguyên các khối intro và lesson) ... */}
-
                     {phase === 'intro' && (
                         <div style={{ background: 'rgba(0,0,0,0.8)', padding: '20px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #ef4444', width: '100%' }}>
                             <h2 style={{ color: '#f87171' }}>👺 Lord of the jungle:</h2>
@@ -260,7 +245,96 @@ export default function Scene3_Forest() {
                         </div>
                     )}
 
-                    {/* ... (Giữ nguyên bảng so sánh ngữ pháp phần lesson) ... */}
+                    {phase === 'lesson' && (
+                        <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '10px', color: '#000', width: '100%', maxHeight: '75vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+                            <h2 style={{ color: '#dc2626', margin: '0 0 15px 0', textAlign: 'center' }}>The comparison between the Present Perfect and Past Simple:</h2>
+
+                            <h3 style={{ margin: '10px 0 5px 0' }}>Similarities</h3>
+                            <p style={{ margin: '0 0 20px 20px', fontWeight: 'bold', fontSize: '16px' }}>Both are used to talk about events or actions that happened in the past.</p>
+
+                            <h3 style={{ margin: '10px 0 10px 0' }}>Differences</h3>
+                            <table style={tableStyle}>
+                                <thead>
+                                    <tr>
+                                        <th style={thStyle}>Feature</th>
+                                        <th style={thStyle}>Present Perfect</th>
+                                        <th style={thStyle}>Past Simple</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Connection to Present</td>
+                                        <td style={tdStyle}>Connects to the present (the result still relevant now).</td>
+                                        <td style={tdStyle}>Finished action in the past, no connection to now.</td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Time</td>
+                                        <td style={tdStyle}>No specific time. Or started in the past and still continues.</td>
+                                        <td style={tdStyle}>Specific, clear time in the past.</td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Common Words</td>
+                                        <td style={tdStyle}>never, ever, for, since, yet, already</td>
+                                        <td style={tdStyle}>yesterday, last year, ago, when, in+ year</td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Example</td>
+                                        <td style={tdStyle}>I have lost my phone. (I don't have it now).</td>
+                                        <td style={tdStyle}>I lost my phone yesterday. (I have a new phone now).</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h2 style={{ color: '#2563eb', margin: '30px 0 15px 0', textAlign: 'center', borderTop: '2px dashed #cbd5e1', paddingTop: '20px' }}>Tense Summary</h2>
+                            <table style={tableStyle}>
+                                <thead>
+                                    <tr>
+                                        <th style={thStyle}>Tense</th>
+                                        <th style={thStyle}>Use (Keyword)</th>
+                                        <th style={thStyle}>Structure</th>
+                                        <th style={thStyle}>Example</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Simple</td>
+                                        <td style={tdStyle}>Habits, facts</td>
+                                        <td style={tdStyle}>V(s/es)</td>
+                                        <td style={tdStyle}><i>She <b>studies</b> English every day.</i></td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Continuous</td>
+                                        <td style={tdStyle}>Happening right now</td>
+                                        <td style={tdStyle}>am/is/are + V-ing</td>
+                                        <td style={tdStyle}><i>She <b>is studying</b> English right now.</i></td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Perfect</td>
+                                        <td style={tdStyle}>Past connected to now</td>
+                                        <td style={tdStyle}>have/has + V3/ed</td>
+                                        <td style={tdStyle}><i>She <b>has studied</b> English for 3 years.</i></td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Past Simple</td>
+                                        <td style={tdStyle}>Finished action, specific time</td>
+                                        <td style={tdStyle}>V2/ed</td>
+                                        <td style={tdStyle}><i>She <b>studied</b> English last night.</i></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h3 style={{ color: '#ef4444', textAlign: 'center', marginTop: '30px' }}>System: click (or tap) on the monsters with WRONG GRAMMAR SENTENCES!</h3>
+                            <button onClick={() => {
+                                if (isHost()) {
+                                    setPhase('playing');
+                                } else {
+                                    alert("Chỉ Trưởng phòng (Host) mới có thể bấm nút Bắt đầu!");
+                                }
+                            }} style={{ pointerEvents: 'auto', marginTop: '15px', padding: '15px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', width: '100%', fontSize: '20px', fontWeight: 'bold', textTransform: 'uppercase', boxShadow: '0 4px 6px rgba(239, 68, 68, 0.4)' }}>
+                                START (2 Minutes)
+                            </button>
+                        </div>
+                    )}
 
                     {phase === 'playing' && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: '-250px' }}>
@@ -273,7 +347,6 @@ export default function Scene3_Forest() {
                         </div>
                     )}
 
-                    {/* CẬP NHẬT 1: Màn hình GAME OVER giống Màn hình Victory */}
                     {phase === 'gameover' && (
                         <div style={{ pointerEvents: 'auto', background: 'rgba(0,0,0,0.8)', padding: '30px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #ef4444', width: '100%', marginTop: '-200px' }}>
                             <h2 style={{ color: '#ef4444', fontSize: '30px', margin: '0 0 10px 0' }}>⏱ TIME'S UP!</h2>
@@ -296,7 +369,6 @@ export default function Scene3_Forest() {
                 <Monster key={monster.id} data={monster} onHit={(pts) => handleHitMonster(pts, monster.id)} />
             ))}
 
-            {/* CẬP NHẬT 2: Hiện cầu vồng nếu VICTORY HOẶC GAMEOVER */}
             {(phase === 'victory' || phase === 'gameover') && (
                 <group position={[0, 0, -25]}>
                     <mesh position={[0, 4, 0]}>

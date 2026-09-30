@@ -1,14 +1,16 @@
-// src/SceneManager.jsx
-import React, { Suspense, useEffect, useRef } from 'react';
+import React, { Suspense, useEffect, useRef, lazy } from 'react';
 import { useMultiplayerState } from 'playroomkit';
 import { Html, useProgress } from '@react-three/drei';
 
 import Player from './components/3d/Player';
+// 1. Scene 1 tải ngay lập tức để người chơi có cái xem ngay
 import Scene1_Cloud from './scenes/Scene1_Cloud';
-import Scene2_Memory from './scenes/Scene2_Memory';
-import Scene3_Forest from './scenes/Scene3_Forest';
-import Scene4_Core from './scenes/Scene4_Core';
-import Scene5_End from './scenes/Scene5_End';
+
+// 2. Các Scene sau dùng kỹ thuật Lazy Load (Tải ngầm khi cần)
+const Scene2_Memory = lazy(() => import('./scenes/Scene2_Memory'));
+const Scene3_Forest = lazy(() => import('./scenes/Scene3_Forest'));
+const Scene4_Core = lazy(() => import('./scenes/Scene4_Core'));
+const Scene5_End = lazy(() => import('./scenes/Scene5_End'));
 
 function LoadingScreen() {
     const { progress } = useProgress();

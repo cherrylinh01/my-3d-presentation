@@ -473,8 +473,3 @@ export default function Scene3_Forest() {
         </group>
     )
 }
-// TẢI TRƯỚC (PRELOAD) 24 CON QUÁI VẬT VÀO RAM ĐỂ KHÔNG BỊ CRASH LOADING SCREEN
-MONSTER_MODELS.forEach((modelFile) => {
-    // Bắt buộc phải có /models/ ở trước mặt để đúng đường dẫn
-    useGLTF.preload(`/models/${modelFile}`);
-});

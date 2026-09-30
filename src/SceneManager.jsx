@@ -1,3 +1,5 @@
+import { useMultiplayerState } from 'playroomkit'; // BẮT BUỘC PHẢI CÓ DÒNG NÀY Ở ĐẦU FILE
+
 export default function SceneManager() {
     const [currentScene] = useMultiplayerState('globalScene', 'scene1');
 

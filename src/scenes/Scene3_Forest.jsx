@@ -41,10 +41,41 @@ const MONSTER_DATA = [
     { id: 30, text: "She bought a new notebook last week.", isCorrect: true }
 ];
 
-// DI CHUYỂN DANH SÁCH RA NGOÀI COMPONENT ĐỂ KHÔNG BỊ TẠO LẠI MỖI GIÂY
+// 1. ĐƯA DANH SÁCH RA NGOÀI ĐỂ TRÁNH RENDER LẠI
 const TREE_MODELS = ['plant_bush.glb', 'plant_bushLarge.glb', 'tree_oak_dark.glb', 'tree_blocks_dark.glb', 'tree_cone_dark.glb', 'tree_default_dark.glb', 'tree_detailed_dark.glb', 'tree_fat_darkh.glb', 'tree_palm.glb', 'tree_palmBend.glb', 'tree_palmDetailedShort.glb', 'tree_palmDetailedTall.glb', 'tree_palmShort.glb', 'tree_palmTall.glb', 'tree_pineDefaultA.glb', 'tree_pineSmallD.glb', 'tree_pineTallA.glb', 'tree_pineTallB.glb', 'tree_pineTallC.glb', 'tree_pineTallD.glb', 'tree_pineTallA_detailed.glb', 'tree_pineTallB_detailed.glb', 'tree_pineTallC_detailed.glb', 'tree_pineTallD_detailed.glb', 'tree_plateau_dark.glb', 'tree_simple_dark.glb', 'tree_small_dark.glb', 'tree_tall_dark.glb', 'tree_thin_dark.glb'];
 const FLOWER_MODELS = ['flower_redA.glb', 'flower_purpleA.glb', 'flower_yellowA.glb'];
 const GRASS_MODELS = ['grass_large.glb', 'grass.glb'];
+
+// 2. HÀM TẠO MAP AN TOÀN TUYỆT ĐỐI (Dùng vòng lặp for)
+const generateEnvironment = () => {
+    const items = [];
+    const generateObjects = (models, count, scaleRange) => {
+        for (let i = 0; i < count; i++) {
+            let x, z;
+            let attempts = 0;
+            // Vòng lặp do-while an toàn, thoát nếu quá 100 lần thử
+            do {
+                x = (Math.random() - 0.5) * 80;
+                z = (Math.random() - 0.5) * 80;
+                attempts++;
+            } while ((Math.abs(x) < 5 || Math.sqrt(x * x + z * z) < 8) && attempts < 100);
+
+            items.push({
+                id: `${models[0]}_${i}_${Math.random().toString(36).substring(7)}`,
+                fileName: models[Math.floor(Math.random() * models.length)],
+                position: [x, 0, z],
+                rotation: [0, Math.random() * Math.PI * 2, 0],
+                scale: scaleRange[0] + Math.random() * (scaleRange[1] - scaleRange[0]),
+            });
+        }
+    };
+
+    generateObjects(TREE_MODELS, 120, [3.5, 6.5]);
+    generateObjects(FLOWER_MODELS, 40, [1.5, 2.5]);
+    generateObjects(GRASS_MODELS, 80, [2.0, 3.5]);
+
+    return items;
+};
 
 function Monster({ data, onHit }) {
     const ref = useRef();
@@ -71,7 +102,8 @@ function Monster({ data, onHit }) {
         }
     });
 
-    const handleClick = () => {
+    const handleClick = (e) => {
+        e.stopPropagation(); // Ngăn sự kiện click xuyên qua vật thể khác
         if (status !== 'alive') return;
         if (!data.isCorrect) {
             setStatus('exploded');
@@ -92,7 +124,7 @@ function Monster({ data, onHit }) {
     }
 
     return (
-        <group ref={ref} position={[startX, 1, startZ]} onClick={handleClick} cursor="pointer">
+        <group ref={ref} position={[startX, 1, startZ]} onClick={handleClick} onPointerOver={() => document.body.style.cursor = 'pointer'} onPointerOut={() => document.body.style.cursor = 'auto'}>
             <mesh castShadow>
                 <boxGeometry args={[1.5, 1.5, 1.5]} />
                 <meshStandardMaterial color={status === 'wrong' ? '#ef4444' : '#16a34a'} roughness={0.3} metalness={0.2} />
@@ -154,40 +186,13 @@ export default function Scene3_Forest() {
     }, [phase, timeLeft]);
 
     useEffect(() => {
-        if (isHost() && phase === 'playing' && spawnCount === MONSTER_DATA.length && activeMonsters.filter(m => !m.isCorrect).length === 0) {
+        if (isHost() && phase === 'playing' && spawnCount === MONSTER_DATA.length && (activeMonsters || []).filter(m => !m.isCorrect).length === 0) {
             setPhase('victory');
         }
     }, [phase, spawnCount, activeMonsters]);
 
-    // MAP CÂY CHỈ ĐƯỢC TẠO 1 LẦN DUY NHẤT NHỜ DEPENDENCY ARRAY RỖNG []
-    const environment = useMemo(() => {
-        const items = [];
-        const generateObjects = (models, count, scaleRange) => {
-            let i = 0;
-            while (i < count) {
-                const x = (Math.random() - 0.5) * 80;
-                const z = (Math.random() - 0.5) * 80;
-
-                if (Math.abs(x) < 5) continue;
-                if (Math.sqrt(x * x + z * z) < 8) continue;
-
-                items.push({
-                    id: `${models[0]}_${i}_${Math.random()}`,
-                    fileName: models[Math.floor(Math.random() * models.length)],
-                    position: [x, 0, z],
-                    rotation: [0, Math.random() * Math.PI * 2, 0],
-                    scale: scaleRange[0] + Math.random() * (scaleRange[1] - scaleRange[0]),
-                });
-                i++;
-            }
-        };
-
-        generateObjects(TREE_MODELS, 120, [3.5, 6.5]);
-        generateObjects(FLOWER_MODELS, 40, [1.5, 2.5]);
-        generateObjects(GRASS_MODELS, 80, [2.0, 3.5]);
-
-        return items;
-    }, []); // MẢNG RỖNG VÔ CÙNG QUAN TRỌNG
+    // Gọi hàm tạo Map an toàn 1 lần duy nhất
+    const environment = useMemo(() => generateEnvironment(), []);
 
     const handleHitMonster = (points, id) => {
         setScore(scoreRef.current + points);
@@ -235,7 +240,15 @@ export default function Scene3_Forest() {
             )}
 
             <Html center position={[0, 4, -5]} zIndexRange={[100, 0]}>
-                <div style={{ width: '850px', pointerEvents: 'auto', userSelect: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                {/* 3. SỬA LỖI TẤM KHIÊN TÀNG HÌNH BẰNG pointerEvents */}
+                <div style={{
+                    width: '850px',
+                    pointerEvents: phase === 'playing' ? 'none' : 'auto',
+                    userSelect: 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center'
+                }}>
                     {phase === 'intro' && (
                         <div style={{ background: 'rgba(0,0,0,0.8)', padding: '20px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #ef4444', width: '100%' }}>
                             <h2 style={{ color: '#f87171' }}>👺 Lord of the jungle:</h2>
@@ -325,7 +338,14 @@ export default function Scene3_Forest() {
                             </table>
 
                             <h3 style={{ color: '#ef4444', textAlign: 'center', marginTop: '30px' }}>System: click (or tap) on the monsters with WRONG GRAMMAR SENTENCES!</h3>
-                            <button onClick={() => setPhase('playing')} style={{ marginTop: '15px', padding: '15px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', width: '100%', fontSize: '20px', fontWeight: 'bold', textTransform: 'uppercase', boxShadow: '0 4px 6px rgba(239, 68, 68, 0.4)' }}>
+                            <button onClick={() => {
+                                // CHỈ TRƯỞNG PHÒNG MỚI CÓ THỂ BẮT ĐẦU GAME
+                                if (isHost()) {
+                                    setPhase('playing');
+                                } else {
+                                    alert("Chỉ Trưởng phòng (Host) mới có thể bấm nút Bắt đầu!");
+                                }
+                            }} style={{ pointerEvents: 'auto', marginTop: '15px', padding: '15px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', width: '100%', fontSize: '20px', fontWeight: 'bold', textTransform: 'uppercase', boxShadow: '0 4px 6px rgba(239, 68, 68, 0.4)' }}>
                                 START (2 Minutes)
                             </button>
                         </div>
@@ -343,7 +363,7 @@ export default function Scene3_Forest() {
                     )}
 
                     {phase === 'gameover' && (
-                        <div style={{ background: 'rgba(0,0,0,0.8)', padding: '30px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #ef4444', width: '100%', marginTop: '-200px' }}>
+                        <div style={{ pointerEvents: 'auto', background: 'rgba(0,0,0,0.8)', padding: '30px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #ef4444', width: '100%', marginTop: '-200px' }}>
                             <h2 style={{ color: '#ef4444', fontSize: '30px' }}>☠️ GAME OVER</h2>
                             <p style={{ fontSize: '18px' }}>Time's up! You haven't defeated all the monsters.</p>
                             <button onClick={handleRestart} style={{ marginTop: '20px', padding: '15px 30px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold' }}>TRY AGAIN TOGETHER</button>
@@ -351,7 +371,7 @@ export default function Scene3_Forest() {
                     )}
 
                     {phase === 'victory' && (
-                        <div style={{ background: 'rgba(0,0,0,0.8)', padding: '30px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #4ade80', width: '100%', marginTop: '-200px' }}>
+                        <div style={{ pointerEvents: 'auto', background: 'rgba(0,0,0,0.8)', padding: '30px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #4ade80', width: '100%', marginTop: '-200px' }}>
                             <h2 style={{ color: '#4ade80', fontSize: '30px', margin: '0 0 10px 0' }}>🎉 TEAM VICTORY!</h2>
                             <p style={{ fontSize: '24px', margin: '15px 0' }}>Total Score: <b style={{ color: '#fbbf24' }}>{score}</b></p>
                             <p style={{ fontSize: '16px', color: '#9ca3af', marginTop: '20px' }}>Step through the rainbow bridge to proceed to the next challenge.</p>
@@ -360,7 +380,7 @@ export default function Scene3_Forest() {
                 </div>
             </Html>
 
-            {phase === 'playing' && activeMonsters.map(monster => (
+            {phase === 'playing' && (activeMonsters || []).map(monster => (
                 <Monster key={monster.id} data={monster} onHit={(pts) => handleHitMonster(pts, monster.id)} />
             ))}
 

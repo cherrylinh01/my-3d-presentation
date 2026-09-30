@@ -45,7 +45,6 @@ function Monster({ data, onHit }) {
     const ref = useRef();
     const [status, setStatus] = useState('alive');
 
-    // Lấy tọa độ đồng bộ từ Trưởng phòng thay vì tự random trên từng máy
     const { startX, startZ, speed, targetX, wobbleOffset } = data;
 
     useEffect(() => {
@@ -71,10 +70,10 @@ function Monster({ data, onHit }) {
         if (status !== 'alive') return;
         if (!data.isCorrect) {
             setStatus('exploded');
-            onHit(10); // Đánh trúng quái sai ngữ pháp
+            onHit(10);
         } else {
             setStatus('wrong');
-            onHit(-5); // Đánh nhầm quái đúng ngữ pháp
+            onHit(-5);
             setTimeout(() => setStatus('alive'), 1000);
         }
     };
@@ -107,6 +106,12 @@ export default function Scene3_Forest() {
     const [activeMonsters, setActiveMonsters] = useMultiplayerState('scene3_monsters', []);
     const [spawnCount, setSpawnCount] = useMultiplayerState('scene3_spawnCount', 0);
 
+    // Dùng Refs để giữ giá trị mới nhất mà không gây lỗi mạng (Fix lỗi Crash ngầm)
+    const activeMonstersRef = useRef(activeMonsters);
+    const scoreRef = useRef(score);
+    useEffect(() => { activeMonstersRef.current = activeMonsters; }, [activeMonsters]);
+    useEffect(() => { scoreRef.current = score; }, [score]);
+
     // CHỈ TRƯỞNG PHÒNG (HOST) MỚI CÓ QUYỀN SINH QUÁI
     useEffect(() => {
         if (isHost() && phase === 'playing' && spawnCount < MONSTER_DATA.length) {
@@ -119,8 +124,9 @@ export default function Scene3_Forest() {
                     targetX: (Math.random() - 0.5) * 20,
                     wobbleOffset: Math.random() * Math.PI * 2,
                 };
-                setActiveMonsters(prev => [...prev, newMonster]);
-                setSpawnCount(c => c + 1);
+                // Dùng giá trị trực tiếp thay vì hàm callback prev => ...
+                setActiveMonsters([...activeMonstersRef.current, newMonster]);
+                setSpawnCount(spawnCount + 1);
             }, 2500);
             return () => clearTimeout(timer);
         }
@@ -137,11 +143,11 @@ export default function Scene3_Forest() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [phase]);
 
-    // CHỈ TRƯỞNG PHÒNG ĐẾM GIỜ THỜI GIAN
+    // ĐẾM THỜI GIAN: Đổi setInterval thành setTimeout để tránh kẹt trạng thái
     useEffect(() => {
         if (isHost() && phase === 'playing' && timeLeft > 0) {
-            const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
-            return () => clearInterval(timer);
+            const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+            return () => clearTimeout(timer);
         } else if (isHost() && phase === 'playing' && timeLeft <= 0) {
             setPhase('gameover');
         }
@@ -154,7 +160,8 @@ export default function Scene3_Forest() {
         }
     }, [phase, spawnCount, activeMonsters]);
 
-    const treeModels = ['plant_bush.glb', 'plant_bushLarge.glb', 'tree_oak_dark.glb', 'tree_blocks_dark.glb', 'tree_cone_dark.glb', 'tree_default_dark.glb', 'tree_detailed_dark.glb', 'tree_fat_darkh.glb', 'tree_palm.glb'];
+    // Danh sách cây khủng của bạn
+    const treeModels = ['plant_bush.glb', 'plant_bushLarge.glb', 'tree_oak_dark.glb', 'tree_blocks_dark.glb', 'tree_cone_dark.glb', 'tree_default_dark.glb', 'tree_detailed_dark.glb', 'tree_fat_darkh.glb', 'tree_palm.glb', 'tree_palmBend.glb', 'tree_palmDetailedShort.glb', 'tree_palmDetailedTall.glb', 'tree_palmShort.glb', 'tree_palmTall.glb', 'tree_pineDefaultA.glb', 'tree_pineSmallD.glb', 'tree_pineTallA.glb', 'tree_pineTallB.glb', 'tree_pineTallC.glb', 'tree_pineTallD.glb', 'tree_pineTallA_detailed.glb', 'tree_pineTallB_detailed.glb', 'tree_pineTallC_detailed.glb', 'tree_pineTallD_detailed.glb', 'tree_plateau_dark.glb', 'tree_simple_dark.glb', 'tree_small_dark.glb', 'tree_tall_dark.glb', 'tree_thin_dark.glb'];
     const flowerModels = ['flower_redA.glb', 'flower_purpleA.glb', 'flower_yellowA.glb'];
     const grassModels = ['grass_large.glb', 'grass.glb'];
 
@@ -185,12 +192,12 @@ export default function Scene3_Forest() {
         generateObjects(grassModels, 80, [2.0, 3.5]);
 
         return items;
-    }, []);
+    }, [treeModels]);
 
     const handleHitMonster = (points, id) => {
-        setScore(s => s + points);
+        setScore(scoreRef.current + points);
         if (points > 0) {
-            setActiveMonsters(prev => prev.filter(m => m.id !== id));
+            setActiveMonsters(activeMonstersRef.current.filter(m => m.id !== id));
         }
     };
 
@@ -206,7 +213,6 @@ export default function Scene3_Forest() {
         setPhase('playing');
     };
 
-    // CSS Variables for Tables
     const tableStyle = { width: '100%', borderCollapse: 'collapse', marginBottom: '25px', fontSize: '15px', background: '#fff', color: '#000', border: '2px solid #000' };
     const thStyle = { border: '1px solid #000', padding: '12px', fontWeight: 'bold', background: '#e2e8f0', textAlign: 'center', fontSize: '16px' };
     const tdStyle = { border: '1px solid #000', padding: '10px', textAlign: 'center' };
@@ -247,8 +253,6 @@ export default function Scene3_Forest() {
 
                     {phase === 'lesson' && (
                         <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '10px', color: '#000', width: '100%', maxHeight: '75vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
-
-                            {/* PHẦN 1: SO SÁNH PRESENT PERFECT VÀ PAST SIMPLE */}
                             <h2 style={{ color: '#dc2626', margin: '0 0 15px 0', textAlign: 'center' }}>The comparison between the Present Perfect and Past Simple:</h2>
 
                             <h3 style={{ margin: '10px 0 5px 0' }}>Similarities</h3>
@@ -287,7 +291,6 @@ export default function Scene3_Forest() {
                                 </tbody>
                             </table>
 
-                            {/* PHẦN 2: BẢNG TỔNG HỢP CÁC THÌ CƠ BẢN */}
                             <h2 style={{ color: '#2563eb', margin: '30px 0 15px 0', textAlign: 'center', borderTop: '2px dashed #cbd5e1', paddingTop: '20px' }}>Tense Summary</h2>
                             <table style={tableStyle}>
                                 <thead>

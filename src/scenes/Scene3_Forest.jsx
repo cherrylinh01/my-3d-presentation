@@ -41,6 +41,11 @@ const MONSTER_DATA = [
     { id: 30, text: "She bought a new notebook last week.", isCorrect: true }
 ];
 
+// DI CHUYỂN DANH SÁCH RA NGOÀI COMPONENT ĐỂ KHÔNG BỊ TẠO LẠI MỖI GIÂY
+const TREE_MODELS = ['plant_bush.glb', 'plant_bushLarge.glb', 'tree_oak_dark.glb', 'tree_blocks_dark.glb', 'tree_cone_dark.glb', 'tree_default_dark.glb', 'tree_detailed_dark.glb', 'tree_fat_darkh.glb', 'tree_palm.glb', 'tree_palmBend.glb', 'tree_palmDetailedShort.glb', 'tree_palmDetailedTall.glb', 'tree_palmShort.glb', 'tree_palmTall.glb', 'tree_pineDefaultA.glb', 'tree_pineSmallD.glb', 'tree_pineTallA.glb', 'tree_pineTallB.glb', 'tree_pineTallC.glb', 'tree_pineTallD.glb', 'tree_pineTallA_detailed.glb', 'tree_pineTallB_detailed.glb', 'tree_pineTallC_detailed.glb', 'tree_pineTallD_detailed.glb', 'tree_plateau_dark.glb', 'tree_simple_dark.glb', 'tree_small_dark.glb', 'tree_tall_dark.glb', 'tree_thin_dark.glb'];
+const FLOWER_MODELS = ['flower_redA.glb', 'flower_purpleA.glb', 'flower_yellowA.glb'];
+const GRASS_MODELS = ['grass_large.glb', 'grass.glb'];
+
 function Monster({ data, onHit }) {
     const ref = useRef();
     const [status, setStatus] = useState('alive');
@@ -106,13 +111,11 @@ export default function Scene3_Forest() {
     const [activeMonsters, setActiveMonsters] = useMultiplayerState('scene3_monsters', []);
     const [spawnCount, setSpawnCount] = useMultiplayerState('scene3_spawnCount', 0);
 
-    // Dùng Refs để giữ giá trị mới nhất mà không gây lỗi mạng (Fix lỗi Crash ngầm)
     const activeMonstersRef = useRef(activeMonsters);
     const scoreRef = useRef(score);
     useEffect(() => { activeMonstersRef.current = activeMonsters; }, [activeMonsters]);
     useEffect(() => { scoreRef.current = score; }, [score]);
 
-    // CHỈ TRƯỞNG PHÒNG (HOST) MỚI CÓ QUYỀN SINH QUÁI
     useEffect(() => {
         if (isHost() && phase === 'playing' && spawnCount < MONSTER_DATA.length) {
             const timer = setTimeout(() => {
@@ -124,7 +127,6 @@ export default function Scene3_Forest() {
                     targetX: (Math.random() - 0.5) * 20,
                     wobbleOffset: Math.random() * Math.PI * 2,
                 };
-                // Dùng giá trị trực tiếp thay vì hàm callback prev => ...
                 setActiveMonsters([...activeMonstersRef.current, newMonster]);
                 setSpawnCount(spawnCount + 1);
             }, 2500);
@@ -132,7 +134,6 @@ export default function Scene3_Forest() {
         }
     }, [phase, spawnCount]);
 
-    // ĐỒNG BỘ PHÍM ENTER ĐỂ CHUYỂN SCENE CHO CẢ PHÒNG
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (phase === 'transition_to_4' && e.key === 'Enter') {
@@ -143,7 +144,6 @@ export default function Scene3_Forest() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [phase]);
 
-    // ĐẾM THỜI GIAN: Đổi setInterval thành setTimeout để tránh kẹt trạng thái
     useEffect(() => {
         if (isHost() && phase === 'playing' && timeLeft > 0) {
             const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -153,18 +153,13 @@ export default function Scene3_Forest() {
         }
     }, [phase, timeLeft]);
 
-    // CHỈ TRƯỞNG PHÒNG KIỂM TRA ĐIỀU KIỆN CHIẾN THẮNG
     useEffect(() => {
         if (isHost() && phase === 'playing' && spawnCount === MONSTER_DATA.length && activeMonsters.filter(m => !m.isCorrect).length === 0) {
             setPhase('victory');
         }
     }, [phase, spawnCount, activeMonsters]);
 
-    // Danh sách cây khủng của bạn
-    const treeModels = ['plant_bush.glb', 'plant_bushLarge.glb', 'tree_oak_dark.glb', 'tree_blocks_dark.glb', 'tree_cone_dark.glb', 'tree_default_dark.glb', 'tree_detailed_dark.glb', 'tree_fat_darkh.glb', 'tree_palm.glb', 'tree_palmBend.glb', 'tree_palmDetailedShort.glb', 'tree_palmDetailedTall.glb', 'tree_palmShort.glb', 'tree_palmTall.glb', 'tree_pineDefaultA.glb', 'tree_pineSmallD.glb', 'tree_pineTallA.glb', 'tree_pineTallB.glb', 'tree_pineTallC.glb', 'tree_pineTallD.glb', 'tree_pineTallA_detailed.glb', 'tree_pineTallB_detailed.glb', 'tree_pineTallC_detailed.glb', 'tree_pineTallD_detailed.glb', 'tree_plateau_dark.glb', 'tree_simple_dark.glb', 'tree_small_dark.glb', 'tree_tall_dark.glb', 'tree_thin_dark.glb'];
-    const flowerModels = ['flower_redA.glb', 'flower_purpleA.glb', 'flower_yellowA.glb'];
-    const grassModels = ['grass_large.glb', 'grass.glb'];
-
+    // MAP CÂY CHỈ ĐƯỢC TẠO 1 LẦN DUY NHẤT NHỜ DEPENDENCY ARRAY RỖNG []
     const environment = useMemo(() => {
         const items = [];
         const generateObjects = (models, count, scaleRange) => {
@@ -187,12 +182,12 @@ export default function Scene3_Forest() {
             }
         };
 
-        generateObjects(treeModels, 120, [3.5, 6.5]);
-        generateObjects(flowerModels, 40, [1.5, 2.5]);
-        generateObjects(grassModels, 80, [2.0, 3.5]);
+        generateObjects(TREE_MODELS, 120, [3.5, 6.5]);
+        generateObjects(FLOWER_MODELS, 40, [1.5, 2.5]);
+        generateObjects(GRASS_MODELS, 80, [2.0, 3.5]);
 
         return items;
-    }, [treeModels]);
+    }, []); // MẢNG RỖNG VÔ CÙNG QUAN TRỌNG
 
     const handleHitMonster = (points, id) => {
         setScore(scoreRef.current + points);

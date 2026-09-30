@@ -2,7 +2,6 @@ import React, { useMemo, useRef, useState, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { Text, Float, Sparkles, Stars, Html, useTexture } from '@react-three/drei'
-import { setState } from 'playroomkit'
 import * as THREE from 'three'
 
 import { setState, isHost, useMultiplayerState } from 'playroomkit' // Nhớ import thêm

@@ -135,11 +135,24 @@ export default function Scene2_Memory() {
             { raw: "Bronze winners are happier, while silver winners feel they lost the gold.", chunk: "Bronze winners   |   are happier,   |   while silver winners feel   |   they lost the gold." },
             { raw: "Happiness is a choice. Money doesn't always buy joy, and financial success has limits.", chunk: "Happiness   |   is a choice.   |   Money doesn't always buy joy,   |   and financial success   |   has limits." },
             { raw: "Enjoy the journey. That is true success. Take a deep breath and look around you.", chunk: "Enjoy the journey.   |   That is true success.   |   Take a deep breath   |   and look around you." },
-            { raw: "Life is a marathon, not a sprint. Don't rush to the finish line, appreciate every step.", chunk: "Life is a marathon,   |   not a sprint.   |   Don't rush   |   to the finish line,   |   appreciate every step." }
+            { raw: "Life is a marathon, not a sprint. Don't rush to the finish line, appreciate every step.", chunk: "Life is a marathon,   |   not a sprint.   |   Don't rush   |   to the finish line,   |   appreciate every step." },
+            { raw: "Success is not a destination, but a journey. The path you take is more important than the end result.", chunk: "Success is not   |   a destination,   |   but a journey.   |   The path you take   |   is more important   |   than the end result." },
+            { raw: "The journey is the reward. The process of learning, growing, and experiencing life is what makes it meaningful.", chunk: "The journey   |   is the reward.   |   The process of learning,   |   growing, and experiencing life   |   is what makes it meaningful." },
+            { raw: "Success is not about the destination, but the journey itself. Enjoy every step of the way.", chunk: "Success is not   |   about the destination,   |   but the journey itself.   |   Enjoy every step of the way." }
         ];
         // Nhân bản data để vòng xoáy dày đặc hơn
         for (let i = 0; i < sentences.length * 2; i++) {
-            nodes.push({ id: i, rawText: sentences[i % sentences.length].raw, chunkText: sentences[i % sentences.length].chunk, radius: 20, height: (sentences.length - (i % sentences.length)) * 1.5 + 5, baseSpeed: (i % 2 === 0 ? 1 : -1) * 0.15 });
+            nodes.push({
+                id: i,
+                rawText: sentences[i % sentences.length].raw,
+                chunkText: sentences[i % sentences.length].chunk,
+                radius: 20,
+
+                // ĐÃ SỬA CÔNG THỨC CHIỀU CAO (Xếp chồng từ dưới lên trên, cách nhau 1.5 đơn vị)
+                height: i * 1.5,
+
+                baseSpeed: (i % 2 === 0 ? 1 : -1) * 0.15
+            });
         }
         return nodes;
     }, []);

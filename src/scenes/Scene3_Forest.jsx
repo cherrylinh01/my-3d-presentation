@@ -1,7 +1,8 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react'
+import React, { useState, useRef, useMemo, useEffect, Suspense } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
-import { Text, Html, Sparkles } from '@react-three/drei'
+// Sửa dòng này:
+import { Text, Html, Sparkles, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import DynamicModel from '../components/3d/DynamicModel'
 
@@ -44,6 +45,11 @@ const MONSTER_DATA = [
 const TREE_MODELS = ['plant_bush.glb', 'plant_bushLarge.glb', 'tree_oak_dark.glb', 'tree_blocks_dark.glb', 'tree_cone_dark.glb', 'tree_default_dark.glb', 'tree_detailed_dark.glb', 'tree_fat_darkh.glb', 'tree_palm.glb', 'tree_palmBend.glb', 'tree_palmDetailedShort.glb', 'tree_palmDetailedTall.glb', 'tree_palmShort.glb', 'tree_palmTall.glb', 'tree_pineDefaultA.glb', 'tree_pineSmallD.glb', 'tree_pineTallA.glb', 'tree_pineTallB.glb', 'tree_pineTallC.glb', 'tree_pineTallD.glb', 'tree_pineTallA_detailed.glb', 'tree_pineTallB_detailed.glb', 'tree_pineTallC_detailed.glb', 'tree_pineTallD_detailed.glb', 'tree_plateau_dark.glb', 'tree_simple_dark.glb', 'tree_small_dark.glb', 'tree_tall_dark.glb', 'tree_thin_dark.glb'];
 const FLOWER_MODELS = ['flower_redA.glb', 'flower_purpleA.glb', 'flower_yellowA.glb'];
 const GRASS_MODELS = ['grass_large.glb', 'grass.glb'];
+// Đặt dưới mảng GRASS_MODELS
+const MONSTER_MODELS = [
+    'animal-tiger.glb', 'animal-beaver.glb', 'animal-bee.glb', 'animal-crab.glb', 'animal-fish.glb', 'animal-giraffe.glb', 'animal-monkey.glb', 'animal-penguin.glb',
+    'animal-bunny.glb', 'animal-cat.glb', 'animal-caterpillar.glb', 'animal-fox.glb', 'animal-hog.glb', 'animal-koala.glb', 'animal-panda.glb', 'animal-pig.glb',
+    'animal-chick.glb', 'animal-cow.glb', 'animal-deer.glb', 'animal-dog.glb', 'animal-elephant.glb', 'animal-lion.glb', 'animal-parrot.glb', 'animal-polar.glb'];
 
 const generateEnvironment = () => {
     const items = [];
@@ -74,10 +80,13 @@ const generateEnvironment = () => {
     return items;
 };
 
-function Monster({ data, onHit }) {
+// GỘP LẠI THÀNH ĐÚNG 1 ĐỊNH NGHĨA COMPONENT DUY NHẤT VÀ NẰM ĐỘC LẬP
+const Monster = React.memo(({ data, onHit }) => {
     const ref = useRef();
     const [status, setStatus] = useState('alive');
-    const { startX, startZ, speed, targetX, wobbleOffset } = data;
+
+    const { startX, startZ, speed, targetX, wobbleOffset, modelFile } = data;
+    const safeModelFile = modelFile || MONSTER_MODELS[data.id % MONSTER_MODELS.length];
 
     useEffect(() => {
         if (ref.current) {
@@ -103,10 +112,10 @@ function Monster({ data, onHit }) {
         if (status !== 'alive') return;
         if (!data.isCorrect) {
             setStatus('exploded');
-            onHit(10);
+            onHit(10, data.id);
         } else {
             setStatus('wrong');
-            onHit(-5);
+            onHit(-5, data.id);
             setTimeout(() => setStatus('alive'), 1000);
         }
     };
@@ -121,16 +130,38 @@ function Monster({ data, onHit }) {
 
     return (
         <group ref={ref} position={[startX, 1, startZ]} onClick={handleClick} onPointerOver={() => document.body.style.cursor = 'pointer'} onPointerOut={() => document.body.style.cursor = 'auto'}>
-            <mesh castShadow>
-                <boxGeometry args={[1.5, 1.5, 1.5]} />
-                <meshStandardMaterial color={status === 'wrong' ? '#ef4444' : '#16a34a'} roughness={0.3} metalness={0.2} />
+
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.9, 0]}>
+                <ringGeometry args={[1, 1.4, 32]} />
+                <meshStandardMaterial
+                    color={status === 'wrong' ? '#ef4444' : '#facc15'}
+                    emissive={status === 'wrong' ? '#ef4444' : '#facc15'}
+                    emissiveIntensity={status === 'wrong' ? 3 : 0.5}
+                    side={THREE.DoubleSide}
+                />
             </mesh>
-            <Text position={[0, 1.8, 0]} fontSize={0.6} color="white" outlineWidth={0.05} outlineColor="black" anchorY="bottom">
-                {data.text}
-            </Text>
+
+            <group position={[0, -1, 0]}>
+                <Suspense fallback={null}>
+                    <DynamicModel fileName={safeModelFile} scale={1.5} />
+                </Suspense>
+            </group>
+
+            <group position={[0, 2.5, 0]}>
+                <mesh position={[0, 0.3, -0.01]}>
+                    <planeGeometry args={[10, 1.5]} />
+                    <meshBasicMaterial color="#000000" transparent opacity={0.5} />
+                </mesh>
+                <Text fontSize={0.6} color="white" outlineWidth={0.05} outlineColor="black" anchorY="center" textAlign="center" maxWidth={9}>
+                    {data.text}
+                </Text>
+            </group>
         </group>
     );
-}
+}, (prevProps, nextProps) => {
+    // KHÓA RENDER
+    return prevProps.data.id === nextProps.data.id;
+});
 
 export default function Scene3_Forest() {
     const [phase, setPhase] = useMultiplayerState('scene3_phase', 'intro');
@@ -156,6 +187,9 @@ export default function Scene3_Forest() {
                     speed: 3 + Math.random() * 3,
                     targetX: (Math.random() - 0.5) * 20,
                     wobbleOffset: Math.random() * Math.PI * 2,
+
+                    // TÍNH NĂNG MỚI: Bốc ngẫu nhiên 1 mô hình 3D cho quái vật này
+                    modelFile: MONSTER_MODELS[Math.floor(Math.random() * MONSTER_MODELS.length)]
                 };
                 setActiveMonsters([...activeMonstersRef.current, newMonster]);
                 setSpawnCount(spawnCount + 1);
@@ -219,12 +253,16 @@ export default function Scene3_Forest() {
             </RigidBody>
 
             {environment.map((item) => (
-                <DynamicModel key={item.id} fileName={item.fileName} position={item.position} rotation={item.rotation} scale={item.scale} />
+                <Suspense fallback={null} key={item.id}>
+                    <DynamicModel fileName={item.fileName} position={item.position} rotation={item.rotation} scale={item.scale} />
+                </Suspense>
             ))}
 
             {phase !== 'victory' && phase !== 'gameover' && phase !== 'transition_to_4' && (
                 <group position={[10, 0, 0]}>
-                    <DynamicModel fileName="tent_detailedOpen.glb" position={[0, 0, 0]} rotation={[0, -Math.PI / 4, 0]} scale={3.5} />
+                    <Suspense fallback={null}>
+                        <DynamicModel fileName="tent_detailedOpen.glb" position={[0, 0, 0]} rotation={[0, -Math.PI / 4, 0]} scale={3.5} />
+                    </Suspense>
                 </group>
             )}
 
@@ -249,8 +287,6 @@ export default function Scene3_Forest() {
 
                     {phase === 'lesson' && (
                         <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '10px', color: '#000', width: '100%', maxHeight: '75vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', transition: 'all 0.3s ease' }}>
-
-                            {/* Header có nút thu nhỏ */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isLessonMinimized ? '0' : '15px' }}>
                                 <h2 style={{ color: '#dc2626', margin: 0, textAlign: 'center', flex: 1 }}>The comparison between Present Perfect & Past Simple</h2>
                                 <button
@@ -261,7 +297,6 @@ export default function Scene3_Forest() {
                                 </button>
                             </div>
 
-                            {/* Nội dung bài giảng (Ẩn đi nếu thu nhỏ) */}
                             {!isLessonMinimized && (
                                 <>
                                     <h3 style={{ margin: '10px 0 5px 0' }}>Similarities</h3>
@@ -269,7 +304,6 @@ export default function Scene3_Forest() {
 
                                     <h3 style={{ margin: '10px 0 10px 0' }}>Differences</h3>
                                     <table style={tableStyle}>
-                                        {/* ... Giữ nguyên toàn bộ phần <thead> và <tbody> của cả 2 bảng ở đây ... */}
                                         <thead>
                                             <tr>
                                                 <th style={thStyle}>Feature</th>
@@ -383,8 +417,13 @@ export default function Scene3_Forest() {
                 </div>
             </Html>
 
+            {/* THAY ĐỔI CÁCH TRUYỀN onHit ĐỂ NGĂN RENDER LẠI */}
             {phase === 'playing' && (activeMonsters || []).map(monster => (
-                <Monster key={monster.id} data={monster} onHit={(pts) => handleHitMonster(pts, monster.id)} />
+                <Monster
+                    key={monster.id}
+                    data={monster}
+                    onHit={handleHitMonster}
+                />
             ))}
 
             {(phase === 'victory' || phase === 'gameover') && (
@@ -434,3 +473,8 @@ export default function Scene3_Forest() {
         </group>
     )
 }
+// TẢI TRƯỚC (PRELOAD) 24 CON QUÁI VẬT VÀO RAM ĐỂ KHÔNG BỊ CRASH LOADING SCREEN
+MONSTER_MODELS.forEach((modelFile) => {
+    // Bắt buộc phải có /models/ ở trước mặt để đúng đường dẫn
+    useGLTF.preload(`/models/${modelFile}`);
+});

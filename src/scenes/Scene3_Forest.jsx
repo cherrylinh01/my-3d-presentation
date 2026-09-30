@@ -139,6 +139,8 @@ export default function Scene3_Forest() {
     const [activeMonsters, setActiveMonsters] = useMultiplayerState('scene3_monsters', []);
     const [spawnCount, setSpawnCount] = useMultiplayerState('scene3_spawnCount', 0);
 
+    const [isLessonMinimized, setIsLessonMinimized] = useState(false);
+
     const activeMonstersRef = useRef(activeMonsters);
     const scoreRef = useRef(score);
     useEffect(() => { activeMonstersRef.current = activeMonsters; }, [activeMonsters]);
@@ -246,93 +248,109 @@ export default function Scene3_Forest() {
                     )}
 
                     {phase === 'lesson' && (
-                        <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '10px', color: '#000', width: '100%', maxHeight: '75vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
-                            <h2 style={{ color: '#dc2626', margin: '0 0 15px 0', textAlign: 'center' }}>The comparison between the Present Perfect and Past Simple:</h2>
+                        <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '10px', color: '#000', width: '100%', maxHeight: '75vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', transition: 'all 0.3s ease' }}>
 
-                            <h3 style={{ margin: '10px 0 5px 0' }}>Similarities</h3>
-                            <p style={{ margin: '0 0 20px 20px', fontWeight: 'bold', fontSize: '16px' }}>Both are used to talk about events or actions that happened in the past.</p>
+                            {/* Header có nút thu nhỏ */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isLessonMinimized ? '0' : '15px' }}>
+                                <h2 style={{ color: '#dc2626', margin: 0, textAlign: 'center', flex: 1 }}>The comparison between Present Perfect & Past Simple</h2>
+                                <button
+                                    onClick={() => setIsLessonMinimized(!isLessonMinimized)}
+                                    style={{ background: '#e2e8f0', border: '1px solid #cbd5e1', borderRadius: '5px', color: '#000', cursor: 'pointer', padding: '5px 12px', fontSize: '14px', fontWeight: 'bold' }}
+                                >
+                                    {isLessonMinimized ? '➕ Phóng to' : '➖ Thu nhỏ'}
+                                </button>
+                            </div>
 
-                            <h3 style={{ margin: '10px 0 10px 0' }}>Differences</h3>
-                            <table style={tableStyle}>
-                                <thead>
-                                    <tr>
-                                        <th style={thStyle}>Feature</th>
-                                        <th style={thStyle}>Present Perfect</th>
-                                        <th style={thStyle}>Past Simple</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Connection to Present</td>
-                                        <td style={tdStyle}>Connects to the present (the result still relevant now).</td>
-                                        <td style={tdStyle}>Finished action in the past, no connection to now.</td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Time</td>
-                                        <td style={tdStyle}>No specific time. Or started in the past and still continues.</td>
-                                        <td style={tdStyle}>Specific, clear time in the past.</td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Common Words</td>
-                                        <td style={tdStyle}>never, ever, for, since, yet, already</td>
-                                        <td style={tdStyle}>yesterday, last year, ago, when, in+ year</td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Example</td>
-                                        <td style={tdStyle}>I have lost my phone. (I don't have it now).</td>
-                                        <td style={tdStyle}>I lost my phone yesterday. (I have a new phone now).</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            {/* Nội dung bài giảng (Ẩn đi nếu thu nhỏ) */}
+                            {!isLessonMinimized && (
+                                <>
+                                    <h3 style={{ margin: '10px 0 5px 0' }}>Similarities</h3>
+                                    <p style={{ margin: '0 0 20px 20px', fontWeight: 'bold', fontSize: '16px' }}>Both are used to talk about events or actions that happened in the past.</p>
 
-                            <h2 style={{ color: '#2563eb', margin: '30px 0 15px 0', textAlign: 'center', borderTop: '2px dashed #cbd5e1', paddingTop: '20px' }}>Tense Summary</h2>
-                            <table style={tableStyle}>
-                                <thead>
-                                    <tr>
-                                        <th style={thStyle}>Tense</th>
-                                        <th style={thStyle}>Use (Keyword)</th>
-                                        <th style={thStyle}>Structure</th>
-                                        <th style={thStyle}>Example</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Simple</td>
-                                        <td style={tdStyle}>Habits, facts</td>
-                                        <td style={tdStyle}>V(s/es)</td>
-                                        <td style={tdStyle}><i>She <b>studies</b> English every day.</i></td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Continuous</td>
-                                        <td style={tdStyle}>Happening right now</td>
-                                        <td style={tdStyle}>am/is/are + V-ing</td>
-                                        <td style={tdStyle}><i>She <b>is studying</b> English right now.</i></td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Perfect</td>
-                                        <td style={tdStyle}>Past connected to now</td>
-                                        <td style={tdStyle}>have/has + V3/ed</td>
-                                        <td style={tdStyle}><i>She <b>has studied</b> English for 3 years.</i></td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Past Simple</td>
-                                        <td style={tdStyle}>Finished action, specific time</td>
-                                        <td style={tdStyle}>V2/ed</td>
-                                        <td style={tdStyle}><i>She <b>studied</b> English last night.</i></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                    <h3 style={{ margin: '10px 0 10px 0' }}>Differences</h3>
+                                    <table style={tableStyle}>
+                                        {/* ... Giữ nguyên toàn bộ phần <thead> và <tbody> của cả 2 bảng ở đây ... */}
+                                        <thead>
+                                            <tr>
+                                                <th style={thStyle}>Feature</th>
+                                                <th style={thStyle}>Present Perfect</th>
+                                                <th style={thStyle}>Past Simple</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td style={{ ...tdStyle, fontWeight: 'bold' }}>Connection to Present</td>
+                                                <td style={tdStyle}>Connects to the present (the result still relevant now).</td>
+                                                <td style={tdStyle}>Finished action in the past, no connection to now.</td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ ...tdStyle, fontWeight: 'bold' }}>Time</td>
+                                                <td style={tdStyle}>No specific time. Or started in the past and still continues.</td>
+                                                <td style={tdStyle}>Specific, clear time in the past.</td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ ...tdStyle, fontWeight: 'bold' }}>Common Words</td>
+                                                <td style={tdStyle}>never, ever, for, since, yet, already</td>
+                                                <td style={tdStyle}>yesterday, last year, ago, when, in+ year</td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ ...tdStyle, fontWeight: 'bold' }}>Example</td>
+                                                <td style={tdStyle}>I have lost my phone. (I don't have it now).</td>
+                                                <td style={tdStyle}>I lost my phone yesterday. (I have a new phone now).</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
 
-                            <h3 style={{ color: '#ef4444', textAlign: 'center', marginTop: '30px' }}>System: click (or tap) on the monsters with WRONG GRAMMAR SENTENCES!</h3>
-                            <button onClick={() => {
-                                if (isHost()) {
-                                    setPhase('playing');
-                                } else {
-                                    alert("Chỉ Trưởng phòng (Host) mới có thể bấm nút Bắt đầu!");
-                                }
-                            }} style={{ pointerEvents: 'auto', marginTop: '15px', padding: '15px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', width: '100%', fontSize: '20px', fontWeight: 'bold', textTransform: 'uppercase', boxShadow: '0 4px 6px rgba(239, 68, 68, 0.4)' }}>
-                                START (2 Minutes)
-                            </button>
+                                    <h2 style={{ color: '#2563eb', margin: '30px 0 15px 0', textAlign: 'center', borderTop: '2px dashed #cbd5e1', paddingTop: '20px' }}>Tense Summary</h2>
+                                    <table style={tableStyle}>
+                                        <thead>
+                                            <tr>
+                                                <th style={thStyle}>Tense</th>
+                                                <th style={thStyle}>Use (Keyword)</th>
+                                                <th style={thStyle}>Structure</th>
+                                                <th style={thStyle}>Example</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Simple</td>
+                                                <td style={tdStyle}>Habits, facts</td>
+                                                <td style={tdStyle}>V(s/es)</td>
+                                                <td style={tdStyle}><i>She <b>studies</b> English every day.</i></td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Continuous</td>
+                                                <td style={tdStyle}>Happening right now</td>
+                                                <td style={tdStyle}>am/is/are + V-ing</td>
+                                                <td style={tdStyle}><i>She <b>is studying</b> English right now.</i></td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Perfect</td>
+                                                <td style={tdStyle}>Past connected to now</td>
+                                                <td style={tdStyle}>have/has + V3/ed</td>
+                                                <td style={tdStyle}><i>She <b>has studied</b> English for 3 years.</i></td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ ...tdStyle, fontWeight: 'bold' }}>Past Simple</td>
+                                                <td style={tdStyle}>Finished action, specific time</td>
+                                                <td style={tdStyle}>V2/ed</td>
+                                                <td style={tdStyle}><i>She <b>studied</b> English last night.</i></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    <h3 style={{ color: '#ef4444', textAlign: 'center', marginTop: '30px' }}>System: click (or tap) on the monsters with WRONG GRAMMAR SENTENCES!</h3>
+                                    <button onClick={() => {
+                                        if (isHost()) {
+                                            setPhase('playing');
+                                        } else {
+                                            alert("Chỉ Trưởng phòng (Host) mới có thể bấm nút Bắt đầu!");
+                                        }
+                                    }} style={{ pointerEvents: 'auto', marginTop: '15px', padding: '15px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', width: '100%', fontSize: '20px', fontWeight: 'bold', textTransform: 'uppercase', boxShadow: '0 4px 6px rgba(239, 68, 68, 0.4)' }}>
+                                        START (2 Minutes)
+                                    </button>
+                                </>
+                            )}
                         </div>
                     )}
 

@@ -3,8 +3,6 @@ import { Text, Html, Float } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
-
-// FIX 1: Gom chung import của PlayroomKit cho gọn gàng, tránh lỗi
 import { useMultiplayerState, isHost } from 'playroomkit'
 
 const SCRIPT = [
@@ -68,23 +66,27 @@ function MindmapKeyAnimation({ onComplete }) {
 
 export default function Scene2_Memory() {
     const vortexRef = useRef();
-
-    // FIX 2: Thêm hook quản lý Scene để React re-render mượt mà khi qua màn
     const [currentScene, setCurrentScene] = useMultiplayerState('globalScene', 'scene1');
     const [step, setStep] = useMultiplayerState('dialogueStep_Scene2', 0);
     const [doorOpen, setDoorOpen] = useMultiplayerState('doorOpen_Scene2', false);
     const [fadeOut, setFadeOut] = useState(false);
-
     const [texMindmap, setTexMindmap] = useState(null);
     const [texLineGraph, setTexLineGraph] = useState(null);
     const [activeBoard, setActiveBoard] = useState(null);
 
+    // TÍNH NĂNG MỚI: State để ẩn/hiện hộp thoại
+    const [isMinimized, setIsMinimized] = useState(false);
+
     const currentScript = SCRIPT[step];
 
-    // FIX 3: GỌI LỆNH TELEPORT KHI VỪA VÀO SCENE 2 ĐỂ NHÂN VẬT KHÔNG BỊ RƠI
     useEffect(() => {
         window.dispatchEvent(new CustomEvent('teleportPlayer', { detail: { x: 0, y: 5, z: 5 } }));
     }, []);
+
+    // TÍNH NĂNG MỚI: Khi chuyển thoại mới, tự động mở to hộp thoại ra để người chơi đọc
+    useEffect(() => {
+        setIsMinimized(false);
+    }, [step]);
 
     useEffect(() => {
         new THREE.TextureLoader().load('/mindmap_chunks.jpg', setTexMindmap);
@@ -99,7 +101,6 @@ export default function Scene2_Memory() {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            // CHỈ CHO PHÉP TRƯỞNG PHÒNG (HOST) CHUYỂN THOẠI
             if (e.key === 'Enter' && isHost()) {
                 setStep((prev) => {
                     if (prev < SCRIPT.length - 1 && !SCRIPT[prev].showKey) return prev + 1;
@@ -111,7 +112,6 @@ export default function Scene2_Memory() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // FIX 4: Chặn người chơi spam nút "Tiếp tục"
     const handleNextDialogue = () => {
         if (isHost() && step < SCRIPT.length - 1) setStep(step + 1);
     };
@@ -121,7 +121,6 @@ export default function Scene2_Memory() {
         setTimeout(() => {
             setFadeOut(true);
             setTimeout(() => {
-                // FIX 5: Dùng hàm setCurrentScene và chỉ cho Host chuyển cảnh để tránh lag
                 if (isHost()) setCurrentScene('scene3');
             }, 1000);
         }, 1500);
@@ -136,17 +135,11 @@ export default function Scene2_Memory() {
             { raw: "Bronze winners are happier, while silver winners feel they lost the gold.", chunk: "Bronze winners   |   are happier,   |   while silver winners feel   |   they lost the gold." },
             { raw: "Happiness is a choice. Money doesn't always buy joy, and financial success has limits.", chunk: "Happiness   |   is a choice.   |   Money doesn't always buy joy,   |   and financial success   |   has limits." },
             { raw: "Enjoy the journey. That is true success. Take a deep breath and look around you.", chunk: "Enjoy the journey.   |   That is true success.   |   Take a deep breath   |   and look around you." },
-            { raw: "Life is a marathon, not a sprint. Don't rush to the finish line, appreciate every step.", chunk: "Life is a marathon,   |   not a sprint.   |   Don't rush   |   to the finish line,   |   appreciate every step." },
-            { raw: "Success is not about the destination, but the journey itself.", chunk: "Success is not   |   about the destination,   |   but the journey itself." },
-            { raw: "Winning an Olympic medal: Who is more successful? The silver medalist or the bronze medalist?", chunk: "Winning an Olympic medal:   |   Who is more successful?   |   The silver medalist   |   or the bronze medalist?" },
-            { raw: "Bronze winners are happier, while silver winners feel they lost the gold.", chunk: "Bronze winners   |   are happier,   |   while silver winners feel   |   they lost the gold." },
-            { raw: "Happiness is a choice. Money doesn't always buy joy, and financial success has limits.", chunk: "Happiness   |   is a choice.   |   Money doesn't always buy joy,   |   and financial success   |   has limits." },
-            { raw: "Enjoy the journey. That is true success. Take a deep breath and look around you.", chunk: "Enjoy the journey.   |   That is true success.   |   Take a deep breath   |   and look around you." },
             { raw: "Life is a marathon, not a sprint. Don't rush to the finish line, appreciate every step.", chunk: "Life is a marathon,   |   not a sprint.   |   Don't rush   |   to the finish line,   |   appreciate every step." }
         ];
-
-        for (let i = 0; i < sentences.length; i++) {
-            nodes.push({ id: i, rawText: sentences[i].raw, chunkText: sentences[i].chunk, radius: 20, height: (sentences.length / 2 - i) * 1.5 + 5, baseSpeed: (i % 2 === 0 ? 1 : -1) * 0.15 });
+        // Nhân bản data để vòng xoáy dày đặc hơn
+        for (let i = 0; i < sentences.length * 2; i++) {
+            nodes.push({ id: i, rawText: sentences[i % sentences.length].raw, chunkText: sentences[i % sentences.length].chunk, radius: 20, height: (sentences.length - (i % sentences.length)) * 1.5 + 5, baseSpeed: (i % 2 === 0 ? 1 : -1) * 0.15 });
         }
         return nodes;
     }, []);
@@ -160,7 +153,6 @@ export default function Scene2_Memory() {
     });
 
     const faceAngles = currentScript.chunked ? [0, Math.PI] : [0, Math.PI / 2, Math.PI, -Math.PI / 2];
-
     const dialogPosition = activeBoard ? [0, 1.8, -9.5] : [0, 4, -12];
     const isBrightRoom = step >= 4;
 
@@ -200,11 +192,7 @@ export default function Scene2_Memory() {
                 <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
                     <mesh position={[0, 6.5, -10]}>
                         <boxGeometry args={[14, 8.4, 0.2]} />
-                        <meshStandardMaterial
-                            color="#ffffff"
-                            map={activeBoard === 'mindmap' ? texMindmap : texLineGraph}
-                            emissive="#111111"
-                        />
+                        <meshStandardMaterial color="#ffffff" map={activeBoard === 'mindmap' ? texMindmap : texLineGraph} emissive="#111111" />
                     </mesh>
                 </Float>
             )}
@@ -216,17 +204,41 @@ export default function Scene2_Memory() {
                 <mesh position={[0, 0, 0]}><boxGeometry args={[6, 10, 0.5]} /><meshStandardMaterial color="#334155" /></mesh>
             </RigidBody>
 
+            {/* HỘP THOẠI CÓ TÍNH NĂNG THU NHỎ */}
             <Html center position={dialogPosition} zIndexRange={[100, 0]}>
                 <div style={{ width: '800px', pointerEvents: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <div style={{
                         width: '100%', background: 'rgba(15, 23, 42, 0.95)', border: '2px solid #3b82f6',
                         padding: '20px 30px', borderRadius: '10px', color: 'white',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.5)', transition: 'all 0.3s ease'
                     }}>
-                        <h3 style={{ margin: '0 0 10px 0', color: '#fbbf24', fontSize: '22px' }}>{currentScript.name}</h3>
-                        <p style={{ margin: '0', fontSize: '18px', lineHeight: '1.6', fontStyle: currentScript.chunked && currentScript.name.includes("System") ? "italic" : "normal" }}>{currentScript.text}</p>
-                        {!currentScript.showKey && (
-                            <button onClick={handleNextDialogue} style={{ marginTop: '20px', padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', float: 'right', fontWeight: 'bold' }}>Tiếp tục ▼</button>
+                        {/* Header chứa Tên nhân vật và Nút Thu nhỏ/Phóng to */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMinimized ? '0' : '15px' }}>
+                            <h3 style={{ margin: 0, color: '#fbbf24', fontSize: '22px' }}>{currentScript.name}</h3>
+                            <button
+                                onClick={() => setIsMinimized(!isMinimized)}
+                                style={{
+                                    background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.3)',
+                                    borderRadius: '5px', color: 'white', cursor: 'pointer', padding: '5px 12px',
+                                    fontSize: '14px', fontWeight: 'bold'
+                                }}
+                            >
+                                {isMinimized ? '➕ Hiện' : '➖ Thu nhỏ'}
+                            </button>
+                        </div>
+
+                        {/* Nội dung bên trong (Sẽ bị ẩn nếu bấm thu nhỏ) */}
+                        {!isMinimized && (
+                            <>
+                                <p style={{ margin: '0', fontSize: '18px', lineHeight: '1.6', fontStyle: currentScript.chunked && currentScript.name.includes("System") ? "italic" : "normal" }}>
+                                    {currentScript.text}
+                                </p>
+                                {!currentScript.showKey && (
+                                    <button onClick={handleNextDialogue} style={{ marginTop: '20px', padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', float: 'right', fontWeight: 'bold' }}>
+                                        Tiếp tục ▼
+                                    </button>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

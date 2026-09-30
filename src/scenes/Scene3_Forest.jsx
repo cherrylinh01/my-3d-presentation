@@ -5,7 +5,7 @@ import { Text, Html, Sparkles } from '@react-three/drei'
 import * as THREE from 'three'
 import DynamicModel from '../components/3d/DynamicModel'
 
-// THÊM: Import useMultiplayerState và isHost từ playroomkit
+// Import useMultiplayerState và isHost từ playroomkit
 import { setState, useMultiplayerState, isHost } from 'playroomkit'
 
 const MONSTER_DATA = [
@@ -101,7 +101,6 @@ function Monster({ data, onHit }) {
 }
 
 export default function Scene3_Forest() {
-    // CHUYỂN ĐỔI: Dùng useMultiplayerState để đồng bộ toàn mạng
     const [phase, setPhase] = useMultiplayerState('scene3_phase', 'intro');
     const [score, setScore] = useMultiplayerState('scene3_score', 0);
     const [timeLeft, setTimeLeft] = useMultiplayerState('scene3_time', 120);
@@ -114,7 +113,6 @@ export default function Scene3_Forest() {
             const timer = setTimeout(() => {
                 const newMonster = {
                     ...MONSTER_DATA[spawnCount],
-                    // Trưởng phòng tính toán tọa độ ngẫu nhiên rồi gửi cho cả phòng
                     startX: (Math.random() - 0.5) * 40,
                     startZ: -40 - Math.random() * 30,
                     speed: 3 + Math.random() * 3,
@@ -126,7 +124,7 @@ export default function Scene3_Forest() {
             }, 2500);
             return () => clearTimeout(timer);
         }
-    }, [phase, spawnCount]); // Không cần đưa activeMonsters vào đây để tránh re-render liên tục
+    }, [phase, spawnCount]);
 
     // ĐỒNG BỘ PHÍM ENTER ĐỂ CHUYỂN SCENE CHO CẢ PHÒNG
     useEffect(() => {
@@ -156,7 +154,7 @@ export default function Scene3_Forest() {
         }
     }, [phase, spawnCount, activeMonsters]);
 
-    const treeModels = ['plant_bush.glb', 'plant_bushLarge.glb', 'tree_oak_dark.glb'];
+    const treeModels = ['plant_bush.glb', 'plant_bushLarge.glb', 'tree_oak_dark.glb', 'tree_blocks_dark.glb', 'tree_cone_dark.glb', 'tree_default_dark.glb', 'tree_detailed_dark.glb', 'tree_fat_darkh.glb', 'tree_palm.glb'];
     const flowerModels = ['flower_redA.glb', 'flower_purpleA.glb', 'flower_yellowA.glb'];
     const grassModels = ['grass_large.glb', 'grass.glb'];
 
@@ -189,7 +187,6 @@ export default function Scene3_Forest() {
         return items;
     }, []);
 
-    // Bất kỳ ai click cũng gửi lệnh cập nhật điểm và xóa quái cho cả phòng
     const handleHitMonster = (points, id) => {
         setScore(s => s + points);
         if (points > 0) {
@@ -197,7 +194,6 @@ export default function Scene3_Forest() {
         }
     };
 
-    // Bất kỳ ai vào vùng cầu vồng cũng kích hoạt chuyển màn cho cả phòng
     const handleNextScene = () => {
         setPhase('transition_to_4');
     };
@@ -210,9 +206,10 @@ export default function Scene3_Forest() {
         setPhase('playing');
     };
 
-    const tableStyle = { width: '100%', borderCollapse: 'collapse', marginBottom: '15px', fontSize: '14px', background: '#fff', color: '#000' };
-    const thStyle = { border: '1px solid #000', padding: '8px', fontWeight: 'bold', background: '#e2e8f0', textAlign: 'center' };
-    const tdStyle = { border: '1px solid #000', padding: '8px', textAlign: 'center' };
+    // CSS Variables for Tables
+    const tableStyle = { width: '100%', borderCollapse: 'collapse', marginBottom: '25px', fontSize: '15px', background: '#fff', color: '#000', border: '2px solid #000' };
+    const thStyle = { border: '1px solid #000', padding: '12px', fontWeight: 'bold', background: '#e2e8f0', textAlign: 'center', fontSize: '16px' };
+    const tdStyle = { border: '1px solid #000', padding: '10px', textAlign: 'center' };
 
     return (
         <group>
@@ -237,7 +234,7 @@ export default function Scene3_Forest() {
             )}
 
             <Html center position={[0, 4, -5]} zIndexRange={[100, 0]}>
-                <div style={{ width: '800px', pointerEvents: 'auto', userSelect: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ width: '850px', pointerEvents: 'auto', userSelect: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     {phase === 'intro' && (
                         <div style={{ background: 'rgba(0,0,0,0.8)', padding: '20px', borderRadius: '15px', color: 'white', textAlign: 'center', border: '2px solid #ef4444', width: '100%' }}>
                             <h2 style={{ color: '#f87171' }}>👺 Lord of the jungle:</h2>
@@ -249,12 +246,15 @@ export default function Scene3_Forest() {
                     )}
 
                     {phase === 'lesson' && (
-                        <div style={{ background: '#fff', padding: '20px', borderRadius: '10px', color: '#000', width: '100%', maxHeight: '75vh', overflowY: 'auto' }}>
-                            <h3 style={{ color: 'red', margin: '0 0 10px 0' }}>The comparison between the Present Perfect and Past Simple:</h3>
-                            <h4 style={{ margin: '5px 0' }}>Similarities</h4>
-                            <p style={{ margin: '5px 0 15px 15px', fontWeight: 'bold' }}>Both are used to talk about events or actions that happened in the past.</p>
-                            <h4 style={{ margin: '5px 0' }}>Differences</h4>
+                        <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '10px', color: '#000', width: '100%', maxHeight: '75vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
 
+                            {/* PHẦN 1: SO SÁNH PRESENT PERFECT VÀ PAST SIMPLE */}
+                            <h2 style={{ color: '#dc2626', margin: '0 0 15px 0', textAlign: 'center' }}>The comparison between the Present Perfect and Past Simple:</h2>
+
+                            <h3 style={{ margin: '10px 0 5px 0' }}>Similarities</h3>
+                            <p style={{ margin: '0 0 20px 20px', fontWeight: 'bold', fontSize: '16px' }}>Both are used to talk about events or actions that happened in the past.</p>
+
+                            <h3 style={{ margin: '10px 0 10px 0' }}>Differences</h3>
                             <table style={tableStyle}>
                                 <thead>
                                     <tr>
@@ -287,8 +287,47 @@ export default function Scene3_Forest() {
                                 </tbody>
                             </table>
 
-                            <h3 style={{ color: '#ef4444', textAlign: 'center', marginTop: '20px' }}>System: click (or tap) on the monsters with WRONG GRAMMAR SENTENCES!</h3>
-                            <button onClick={() => setPhase('playing')} style={{ marginTop: '10px', padding: '15px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', width: '100%', fontSize: '18px', fontWeight: 'bold' }}>
+                            {/* PHẦN 2: BẢNG TỔNG HỢP CÁC THÌ CƠ BẢN */}
+                            <h2 style={{ color: '#2563eb', margin: '30px 0 15px 0', textAlign: 'center', borderTop: '2px dashed #cbd5e1', paddingTop: '20px' }}>Tense Summary</h2>
+                            <table style={tableStyle}>
+                                <thead>
+                                    <tr>
+                                        <th style={thStyle}>Tense</th>
+                                        <th style={thStyle}>Use (Keyword)</th>
+                                        <th style={thStyle}>Structure</th>
+                                        <th style={thStyle}>Example</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Simple</td>
+                                        <td style={tdStyle}>Habits, facts</td>
+                                        <td style={tdStyle}>V(s/es)</td>
+                                        <td style={tdStyle}><i>She <b>studies</b> English every day.</i></td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Continuous</td>
+                                        <td style={tdStyle}>Happening right now</td>
+                                        <td style={tdStyle}>am/is/are + V-ing</td>
+                                        <td style={tdStyle}><i>She <b>is studying</b> English right now.</i></td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Present Perfect</td>
+                                        <td style={tdStyle}>Past connected to now</td>
+                                        <td style={tdStyle}>have/has + V3/ed</td>
+                                        <td style={tdStyle}><i>She <b>has studied</b> English for 3 years.</i></td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>Past Simple</td>
+                                        <td style={tdStyle}>Finished action, specific time</td>
+                                        <td style={tdStyle}>V2/ed</td>
+                                        <td style={tdStyle}><i>She <b>studied</b> English last night.</i></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h3 style={{ color: '#ef4444', textAlign: 'center', marginTop: '30px' }}>System: click (or tap) on the monsters with WRONG GRAMMAR SENTENCES!</h3>
+                            <button onClick={() => setPhase('playing')} style={{ marginTop: '15px', padding: '15px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', width: '100%', fontSize: '20px', fontWeight: 'bold', textTransform: 'uppercase', boxShadow: '0 4px 6px rgba(239, 68, 68, 0.4)' }}>
                                 START (2 Minutes)
                             </button>
                         </div>

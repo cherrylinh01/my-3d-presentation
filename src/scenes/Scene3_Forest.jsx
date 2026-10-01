@@ -47,9 +47,9 @@ const FLOWER_MODELS = ['flower_redA.glb', 'flower_purpleA.glb', 'flower_yellowA.
 const GRASS_MODELS = ['grass_large.glb', 'grass.glb'];
 // Đặt dưới mảng GRASS_MODELS
 const MONSTER_MODELS = [
-    'animal-tiger.glb', 'animal-beaver.glb', 'animal-bee.glb', 'animal-crab.glb', 'animal-fish.glb', 'animal-giraffe.glb', 'animal-monkey.glb', 'animal-penguin.glb',
-    'animal-bunny.glb', 'animal-cat.glb', 'animal-caterpillar.glb', 'animal-fox.glb', 'animal-hog.glb', 'animal-koala.glb', 'animal-panda.glb', 'animal-pig.glb',
-    'animal-chick.glb', 'animal-cow.glb', 'animal-deer.glb', 'animal-dog.glb', 'animal-elephant.glb', 'animal-lion.glb', 'animal-parrot.glb', 'animal-polar.glb'];
+    'animal-tiger.glb', 'animal-beaver.glb', 'animal-bee.glb', 'animal-giraffe.glb', 'animal-monkey.glb',
+    'animal-bunny.glb', 'animal-fox.glb', 'animal-hog.glb', 'animal-koala.glb', 'animal-panda.glb',
+    'animal-deer.glb', 'animal-elephant.glb', 'animal-lion.glb'];
 
 const generateEnvironment = () => {
     const items = [];
@@ -473,3 +473,6 @@ export default function Scene3_Forest() {
         </group>
     )
 }
+MONSTER_MODELS.forEach((modelFile) => {
+    useGLTF.preload(`/models/${modelFile}`);
+});

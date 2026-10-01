@@ -42,7 +42,7 @@ const MONSTER_DATA = [
     { id: 30, text: "She bought a new notebook last week.", isCorrect: true }
 ];
 
-const TREE_MODELS = ['plant_bush.glb', 'plant_bushLarge.glb', 'tree_oak_dark.glb', 'tree_blocks_dark.glb', 'tree_cone_dark.glb', 'tree_default_dark.glb', 'tree_detailed_dark.glb', 'tree_fat_darkh.glb', 'tree_palm.glb', 'tree_palmBend.glb', 'tree_palmDetailedShort.glb', 'tree_palmDetailedTall.glb', 'tree_palmShort.glb', 'tree_palmTall.glb', 'tree_pineDefaultA.glb', 'tree_pineSmallD.glb', 'tree_pineTallA.glb', 'tree_pineTallB.glb', 'tree_pineTallC.glb', 'tree_pineTallD.glb', 'tree_pineTallA_detailed.glb', 'tree_pineTallB_detailed.glb', 'tree_pineTallC_detailed.glb', 'tree_pineTallD_detailed.glb', 'tree_plateau_dark.glb', 'tree_simple_dark.glb', 'tree_small_dark.glb', 'tree_tall_dark.glb', 'tree_thin_dark.glb'];
+const TREE_MODELS = ['plant_bush.glb', 'plant_bushLarge.glb', 'tree_oak_dark.glb', 'tree_blocks_dark.glb', 'tree_cone_dark.glb', 'tree_default_dark.glb', 'tree_detailed_dark.glb', 'tree_fat_darkh.glb', 'tree_palm.glb', 'tree_pineDefaultA.glb', 'tree_plateau_dark.glb', 'tree_simple_dark.glb', 'tree_small_dark.glb', 'tree_tall_dark.glb', 'tree_thin_dark.glb'];
 const FLOWER_MODELS = ['flower_redA.glb', 'flower_purpleA.glb', 'flower_yellowA.glb'];
 const GRASS_MODELS = ['grass_large.glb', 'grass.glb'];
 // Đặt dưới mảng GRASS_MODELS
